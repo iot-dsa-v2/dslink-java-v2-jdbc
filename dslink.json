@@ -1,0 +1,86 @@
+{
+  "name": "dslink-java-v2-jdbc",
+  "version": "0.0.0-preAlpha",
+  "desc": "JDBC DSLink v2",
+  "license": "ISC",
+  "author": {
+    "name": "Juris Puchin",
+    "email": "support@acuitybrands.com"
+  },
+  "main": "bin/dslink-java-v2-jdbc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc"
+  },
+  "bugs": {
+    "url": "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc/issues"
+  },
+  "configs": {
+    "section1": {
+      "desc": "*************** REQUIRED CONFIGS IN ALPHABETICAL ORDER ***************",
+      "value": null
+    },
+    "rootType": {
+      "desc1": "Type of the root node of the link. Must be specified here. Even though this can",
+      "desc2": "be set in code, this will be needed when combing multiple links into the same.",
+      "desc3": "process.",
+      "value": "org.iot.dsa.dslink.java.v2.jdbc.Main"
+    },
+    "section2": {
+      "desc": "*************** OPTIONAL CONFIGS IN ALPHABETICAL ORDER ***************",
+      "value": null
+    },
+    "broker": {
+      "desc": "URL to broker. Can be specified on the command line.",
+      "value": null
+    },
+    "connectionType": {
+      "desc": "Can be specified to override the default connection type.",
+      "value": null
+    },
+    "isRequester": {
+      "desc": "Whether or not the link is a requester.",
+      "value": false
+    },
+    "isResponder": {
+      "desc": "Whether or not the link is a responder.",
+      "value": true
+    },
+    "key": {
+      "desc": "Path to public/private key pair.",
+      "value": ".key"
+    },
+    "log": {
+      "desc": "debug, info, warn, error, none",
+      "value": "info"
+    },
+    "logFile": {
+      "desc": "Path to the log file.",
+      "value": null
+    },
+    "nodes": {
+      "desc": "Path to configuration database.",
+      "value": "nodes.json"
+    },
+    "readTimeout": {
+      "desc": "Millis timeout for reading from the connection.",
+      "value": 60000
+    },
+    "saveInterval": {
+      "desc": "How often to backup the node database in minutes.",
+      "value": 60
+    },
+    "stableDelay": {
+      "desc": "Millis after the node tree is started before calling stable.",
+      "value": 5000
+    },
+    "token": {
+      "desc": "Authentication token for the broker.",
+      "value": null
+    },
+    "transportFactory": {
+      "desc": "Can be specified to override the default standalone transport.",
+      "value": null
+    }
+  }
+}
