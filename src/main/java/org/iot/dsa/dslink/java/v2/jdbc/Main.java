@@ -64,6 +64,9 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null).setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
+        act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
         return act;
     }
 

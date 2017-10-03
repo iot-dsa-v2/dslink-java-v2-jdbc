@@ -5,7 +5,6 @@ sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
 group 'org.iot.dsa'
-version '0.0.1'
 
 mainClassName = 'org.iot.dsa.dslink.DSLink'
 
@@ -28,6 +27,12 @@ dependencies {
 }
 
 applicationDistribution.from(new File(project.projectDir, "/dslink.json"))
+
+build {
+    def inputFile = new File("dslink.json")
+    def json = new groovy.json.JsonSlurper().parseText(inputFile.text)
+    version = json.version //This will return "pqr"
+}
 
 run {
     if (project.hasProperty("appArgs")) {
