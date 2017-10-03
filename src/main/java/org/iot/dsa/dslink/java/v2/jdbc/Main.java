@@ -4,15 +4,7 @@ import org.iot.dsa.DSRuntime;
 import org.iot.dsa.dslink.DSRequester;
 import org.iot.dsa.dslink.DSRequesterInterface;
 import org.iot.dsa.dslink.DSRootNode;
-import org.iot.dsa.node.DSBool;
-import org.iot.dsa.node.DSElement;
-import org.iot.dsa.node.DSFlexEnum;
-import org.iot.dsa.node.DSInfo;
-import org.iot.dsa.node.DSInt;
-import org.iot.dsa.node.DSJavaEnum;
-import org.iot.dsa.node.DSList;
-import org.iot.dsa.node.DSNode;
-import org.iot.dsa.node.DSString;
+import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.DSAction;
@@ -68,7 +60,25 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         //declareDefault("Message", DSString.EMPTY).setReadOnly(true);
         DSAction action = new DSAction();
         declareDefault("Reset", action);
-        declareDefault(JDBCv2Helpers.ADD_DB, action);
+        declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
+    }
+
+    private DSAction makeAddDatabaseAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                return ((Main) info.getParent()).doAThing(invocation.getParameters());
+            }
+        };
+        act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
+        return act;
+    }
+
+    private ActionResult doAThing(DSMap parameters) {
+        DSNode nextDB = new DBConnectionNode();
+        add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
+        getLink().save();
+        return null;
     }
 
     /**
@@ -82,9 +92,6 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
             put("Message", arg);
             clear();
             return null;
-        } else if (actionInfo == this.addDB) {
-            DSNode nextDB = new DBConnectionNode();
-            add("Mean Life", nextDB);
         }
         return super.onInvoke(actionInfo, invocation);
     }
