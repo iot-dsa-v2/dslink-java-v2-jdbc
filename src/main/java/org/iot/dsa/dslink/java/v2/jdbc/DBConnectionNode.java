@@ -17,18 +17,17 @@ public class DBConnectionNode extends DSNode {
     }
 
     private DSAction makeRemoveDatabaseAction() {
-        DSAction act = new DSAction() {
+        return new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((DBConnectionNode) info.getParent()).removeDatabase();
+                ((DBConnectionNode) info.getParent()).removeDatabase();
+                return null;
             }
         };
-        return act;
     }
 
-    private ActionResult removeDatabase() {
+    private void removeDatabase() {
         getParent().remove(getInfo());
-        return null;
     }
 
     @Override
