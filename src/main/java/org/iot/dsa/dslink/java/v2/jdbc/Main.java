@@ -67,15 +67,15 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction act = new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((Main) info.getParent()).doAThing(invocation.getParameters());
+                return ((Main) info.getParent()).addNewDatabase(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
         return act;
     }
 
-    private ActionResult doAThing(DSMap parameters) {
-        DSNode nextDB = new DBConnectionNode();
+    private ActionResult addNewDatabase(DSMap parameters) {
+        DSNode nextDB = new DBConnectionNode(parameters);
         add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
         getLink().save();
         return null;
