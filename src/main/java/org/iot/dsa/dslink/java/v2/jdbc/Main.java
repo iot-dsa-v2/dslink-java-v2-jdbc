@@ -51,13 +51,6 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault("Incrementing Int", DSInt.valueOf(1)).setReadOnly(true);
-        //TODO: Cleanup
-        //declareDefault("Writable Boolean", DSBool.valueOf(true)).setConfig(true);
-//        declareDefault("Writable Enum",
-//                       DSFlexEnum.valueOf("On",
-//                                          DSList.valueOf("Off", "On", "Auto", "Has Space")));
-        //declareDefault("Java Enum", DSJavaEnum.valueOf(MyEnum.Off));
-        //declareDefault("Message", DSString.EMPTY).setReadOnly(true);
         DSAction action = new DSAction();
         declareDefault("Reset", action);
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());

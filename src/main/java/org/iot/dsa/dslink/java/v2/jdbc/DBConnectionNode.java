@@ -16,6 +16,24 @@ public class DBConnectionNode extends DSNode {
         put(db_name, params.get(JDBCv2Helpers.DB_NAME));
     }
 
+    //////////////////////////////////////
+    //Database Actions
+    //////////////////////////////////////
+
+    private DSAction makeQueryAction() {
+        return new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                ((DBConnectionNode) info.getParent()).runQuery();
+                return null;
+            }
+        };
+    }
+
+    private void runQuery() {
+        //TODO: add database query code here
+    }
+
     private DSAction makeRemoveDatabaseAction() {
         return new DSAction() {
             @Override
@@ -32,12 +50,23 @@ public class DBConnectionNode extends DSNode {
 
     @Override
     protected void declareDefaults() {
+        super.declareDefaults();
+        //Default Values
         declareDefault(JDBCv2Helpers.DB_NAME, DSString.valueOf("No Name"));
+        declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown));
+        //Default Actions
+        declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
         declareDefault(JDBCv2Helpers.REMOVE, makeRemoveDatabaseAction());
     }
 
     @Override
     protected void onStable() {
 
+    }
+
+    public enum ConnStates {
+        Connected,
+        Disconnected,
+        Unknown
     }
 }
