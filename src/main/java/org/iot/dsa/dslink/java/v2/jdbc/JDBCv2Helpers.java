@@ -1,11 +1,13 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
+import org.iot.dsa.node.DSElement;
 import org.iot.dsa.node.DSList;
 
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 //import org.apache.commons.dbcp2.BasicDataSource;
@@ -15,7 +17,7 @@ class JDBCv2Helpers {
     //////////////////////
     //Global Static Data
     ///////////////////////
-    private static String[] cashedDriversName;
+    private static DSList cashedDriversNames;
 
     ////////////////////
     //String Definitions
@@ -36,7 +38,6 @@ class JDBCv2Helpers {
     ////////////////////////
     //Helper Functions
     ////////////////////////
-
 
 //    public static BasicDataSource configureDataSource(JdbcConfig config) {
 //        BasicDataSource dataSource = new BasicDataSource();
@@ -60,24 +61,22 @@ class JDBCv2Helpers {
 //    }
 
     public static DSList getRegisteredDrivers() {
-        if (cashedDriversName == null) {
+        if (cashedDriversNames == null) {
             Enumeration<Driver> drivers = DriverManager.getDrivers();
-            Set<String> set = new HashSet<>();
+            cashedDriversNames = new DSList();
             while (drivers.hasMoreElements()) {
                 Driver driver = drivers.nextElement();
                 // skip MySQL fabric
                 if (!driver.getClass().getName().contains("fabric")) {
-                    set.add(driver.getClass().getName());
+                    cashedDriversNames.add(driver.getClass().getName());
                 }
             }
-            cashedDriversName = set.toArray(new String[set.size()]);
         }
-        DSList lst = new DSList();
+        //TODO: remove debugs
         System.out.println("Driver List:");
-        for (String str : cashedDriversName) {
-            lst.add(str);
-            System.out.println(str);
+        for (DSElement i : cashedDriversNames) {
+            System.out.println(i);
         }
-        return lst;
+        return cashedDriversNames.copy();
     }
 }
