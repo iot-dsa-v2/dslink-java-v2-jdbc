@@ -4,11 +4,11 @@ import org.iot.dsa.DSRuntime;
 import org.iot.dsa.dslink.DSRequester;
 import org.iot.dsa.dslink.DSRequesterInterface;
 import org.iot.dsa.dslink.DSRootNode;
+import org.iot.dsa.logging.DSLogging;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.DSAction;
-import java.sql.DriverManager;
 
 /**
  * Link main class and root node.
@@ -25,10 +25,13 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     // Fields
     ///////////////////////////////////////////////////////////////////////////
 
+    private static boolean first = true;
     private DSInfo incrementingInt = getInfo("Incrementing Int");
     private DSInfo reset = getInfo("Reset");
     private DSInfo addDB = getInfo(JDBCv2Helpers.ADD_DB);
     private DSRuntime.Timer timer;
+    private static String[] driverList = {"com.mysql.cj.jdbc.Driver",
+            "org.postgresql.Driver", "org.h2.Driver"};
     private static DSRequesterInterface session;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -38,6 +41,20 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     ///////////////////////////////////////////////////////////////////////////
     // Methods
     ///////////////////////////////////////////////////////////////////////////
+
+    public Main() {
+        if (first) {
+            for (String drvr : driverList) {
+                try {
+                    Class.forName(drvr);
+                } catch (ClassNotFoundException e) {
+                    warn("Driver class not found: " + drvr);
+                    warn(e);
+                }
+            }
+            first = false;
+        }
+    }
 
     @Override
     public void onConnected(DSRequesterInterface session) {
