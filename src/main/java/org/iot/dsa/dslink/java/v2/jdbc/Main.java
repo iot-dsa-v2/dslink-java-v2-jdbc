@@ -4,7 +4,6 @@ import org.iot.dsa.DSRuntime;
 import org.iot.dsa.dslink.DSRequester;
 import org.iot.dsa.dslink.DSRequesterInterface;
 import org.iot.dsa.dslink.DSRootNode;
-import org.iot.dsa.logging.DSLogging;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
@@ -31,7 +30,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     private DSInfo addDB = getInfo(JDBCv2Helpers.ADD_DB);
     private DSRuntime.Timer timer;
     private static String[] driverList = {"com.mysql.cj.jdbc.Driver",
-            "org.postgresql.Driver", "org.h2.Driver"};
+            "org.postgresql.Driver"}; //, "org.h2.Driver"};
     private static DSRequesterInterface session;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -43,16 +42,14 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     ///////////////////////////////////////////////////////////////////////////
 
     public Main() {
-        if (first) {
-            for (String drvr : driverList) {
-                try {
-                    Class.forName(drvr);
-                } catch (ClassNotFoundException e) {
-                    warn("Driver class not found: " + drvr);
-                    warn(e);
-                }
-            }
-            first = false;
+    }
+
+    private void registerDriver(String drvr) {
+        try {
+            JDBCv2Helpers.registerDriver(drvr);
+        } catch (ClassNotFoundException e) {
+            warn("Driver class not found: " + drvr);
+            warn(e);
         }
     }
 
@@ -72,6 +69,8 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction action = new DSAction();
         declareDefault("Reset", action);
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
+        //Action to manually add a driver
+        //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }
 
     private DSAction makeAddDatabaseAction() {
@@ -94,8 +93,6 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         return act;
     }
 
-
-
     private ActionResult addNewDatabase(DSMap parameters) {
         DSNode nextDB = new DBConnectionNode(parameters);
         add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
@@ -103,6 +100,28 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         return null;
     }
 
+    private DSAction makeAddDriverAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                return ((Main) info.getParent()).addNewDriver(invocation.getParameters());
+            }
+        };
+        act.addParameter(JDBCv2Helpers.DRIVER_NAME, DSValueType.STRING, null);
+        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
+
+        act.addParameter(JDBCv2Helpers.REGISTERED, DSValueType.ENUM, null).setEnumRange(drivers);
+        //TODO: add default timeout/poolable options
+//        action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
+//        action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
+        return act;
+    }
+
+    private ActionResult addNewDriver(DSMap parameters) {
+        String drvr = parameters.getString(JDBCv2Helpers.DRIVER_NAME);
+        registerDriver(drvr);
+        return null;
+    }
     /**
      * Handles the reset action.
      */

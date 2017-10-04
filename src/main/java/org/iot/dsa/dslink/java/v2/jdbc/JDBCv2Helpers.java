@@ -26,6 +26,11 @@ class JDBCv2Helpers {
     static final String DRIVER = "Driver";
     static final String ADD_DB = "Add DB";
 
+
+    static final String DRIVER_NAME = "Driver Name";
+    static final String REGISTERED = "Registered";
+    static final String ADD_DRIVER = "Add Driver";
+
     static final String REMOVE = "Disconnect";
 
     static final String QUERY = "Query";
@@ -56,6 +61,11 @@ class JDBCv2Helpers {
 //        dataSource.setMinEvictableIdleTimeMillis(1800000);
 //        return dataSource;
 //    }
+
+    public static void registerDriver(String driverClass) throws ClassNotFoundException {
+        Class.forName(driverClass);
+        cashedDriversNames = null;
+    }
 
     public static DSList getRegisteredDrivers() {
         if (cashedDriversNames == null) {
