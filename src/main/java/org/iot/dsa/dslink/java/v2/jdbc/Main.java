@@ -8,6 +8,7 @@ import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.DSAction;
+import java.sql.DriverManager;
 
 /**
  * Link main class and root node.
@@ -67,8 +68,16 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null).setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
         act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
         act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
+        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
+
+        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
+        //TODO: add default timeout/poolable options
+//        action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
+//        action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
         return act;
     }
+
+
 
     private ActionResult addNewDatabase(DSMap parameters) {
         DSNode nextDB = new DBConnectionNode(parameters);

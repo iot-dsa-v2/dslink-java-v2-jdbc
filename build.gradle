@@ -1,8 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 group 'org.iot.dsa'
 
@@ -23,15 +23,19 @@ dependencies {
     //compile project (':dslink-websocket-standalone')  //replace this with the next line
     compile 'org.iot.dsa:dslink-websocket-standalone:+'
     compile 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.13'
+//    compile 'org.apache.commons:commons-lang3:3.4'
+//    compile 'org.apache.commons:commons-dbcp2:2.1.1'
+//    compile 'org.apache.commons:commons-pool2:2.4.2'
     testCompile 'junit:junit:+'
 }
 
 applicationDistribution.from(new File(project.projectDir, "/dslink.json"))
 
 build {
+    //Gets version from dslink.json file
     def inputFile = new File("dslink.json")
     def json = new groovy.json.JsonSlurper().parseText(inputFile.text)
-    version = json.version //This will return "pqr"
+    version = json.version
 }
 
 run {
