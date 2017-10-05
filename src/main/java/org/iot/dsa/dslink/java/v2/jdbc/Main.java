@@ -24,13 +24,13 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     // Fields
     ///////////////////////////////////////////////////////////////////////////
 
-    private static boolean first = true;
+//    private static boolean first = true;
     private DSInfo incrementingInt = getInfo("Incrementing Int");
     private DSInfo reset = getInfo("Reset");
-    private DSInfo addDB = getInfo(JDBCv2Helpers.ADD_DB);
+//    private DSInfo addDB = getInfo(JDBCv2Helpers.ADD_DB);
     private DSRuntime.Timer timer;
-    private static String[] driverList = {"com.mysql.cj.jdbc.Driver",
-            "org.postgresql.Driver"}; //, "org.h2.Driver"};
+//    private static String[] driverList = {"com.mysql.cj.jdbc.Driver",
+//            "org.postgresql.Driver", "org.h2.Driver"};
     private static DSRequesterInterface session;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction action = new DSAction();
         declareDefault("Reset", action);
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
-        //Action to manually add a driver
+        //Action to manually add a driver currently unused
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }
 
@@ -85,7 +85,6 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
         act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
         DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
-
         act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
         //TODO: add default timeout/poolable options
 //        action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
