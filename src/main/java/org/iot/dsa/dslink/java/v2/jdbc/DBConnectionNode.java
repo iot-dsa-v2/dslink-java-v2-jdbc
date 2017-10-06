@@ -3,13 +3,13 @@ package org.iot.dsa.dslink.java.v2.jdbc;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
+import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
 import org.iot.dsa.security.DSPasswordAes;
 
 import java.beans.PropertyVetoException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
+
 import com.mchange.v2.c3p0.*;
 
 public class DBConnectionNode extends DSNode {
@@ -40,17 +40,34 @@ public class DBConnectionNode extends DSNode {
     //////////////////////////////////////
 
     private DSAction makeQueryAction() {
-        return new DSAction() {
+        DSAction act = new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                ((DBConnectionNode) info.getParent()).runQuery();
-                return null;
+                return ((DBConnectionNode) info.getParent()).runQuery(invocation.getParameters(), this);
             }
         };
+        act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);
+        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        return act;
     }
 
-    private void runQuery() {
+    private ActionResult runQuery(DSMap params, DSAction act) {
         //TODO: add database query code here
+        String query = params.get(JDBCv2Helpers.QUERY).toString();
+        //query = "SELECT * FROM ALARM_RECORDS";
+        JDBCClosedTable res = null;
+        try {
+            Connection conn = pool_data_source.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet rSet = stmt.executeQuery(query);
+            System.out.println(rSet.toString());
+            res = new JDBCClosedTable(act, rSet);
+        } catch (SQLException e) {
+            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            warn("Failed to connect to Database: " + db_name.getValue());
+            warn(e);
+        }
+        return res;
     }
 
     private DSAction makeRemoveDatabaseAction() {
