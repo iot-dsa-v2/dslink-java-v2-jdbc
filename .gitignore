@@ -1,0 +1,23 @@
+# Misc
+.DS_Store
+
+# Gradle
+.gradle
+build
+
+# Project files
+*.iml
+.idea
+nodes.json*
+.classpath
+.key
+.nodes.json
+.nodes.json.bak
+.project
+.settings
+bin
+.gradle/
+.idea/
+*.log
+build/
+out/

@@ -1,5 +1,6 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
+import org.iot.dsa.DSRuntime;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
@@ -52,7 +53,6 @@ public class DBConnectionNode extends DSNode {
     }
 
     private ActionResult runQuery(DSMap params, DSAction act) {
-        //TODO: add database query code here
         String query = params.get(JDBCv2Helpers.QUERY).toString();
         //query = "SELECT * FROM ALARM_RECORDS";
         JDBCClosedTable res = null;
@@ -69,6 +69,68 @@ public class DBConnectionNode extends DSNode {
         }
         return res;
     }
+
+    private DSAction makeStreamingQueryAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                return ((DBConnectionNode) info.getParent()).runStreamingQuery(invocation, this);
+            }
+        };
+        act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.INTERVAL, DSValueType.NUMBER, null);
+        act.setResultType(ActionSpec.ResultType.STREAM_TABLE);
+        return act;
+    }
+
+    private ActionResult runStreamingQuery(final ActionInvocation invoc, DSAction act) {
+        //TODO: add database query code here
+        DSMap params = invoc.getParameters();
+        String query = params.get(JDBCv2Helpers.QUERY).toString();
+        Long interval = params.getLong(JDBCv2Helpers.INTERVAL);
+        final Container<ResultSet> rSet = new Container<>();
+        final Container<JDBCOpenTable> rTable = new Container<>();
+        final Statement stmt;
+        //query = "SELECT * FROM ALARM_RECORDS";
+        JDBCOpenTable res = null;
+        DSRuntime.Timer stream = null;
+        try {
+            final String cursName = JDBCv2Helpers.randomCursorName();
+
+            Connection conn = pool_data_source.getConnection();
+            conn.setAutoCommit(false);
+            stmt = conn.createStatement();
+            stmt.execute("DECLARE " + cursName + " CURSOR FOR " + query);
+
+            rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
+            rTable.setValue(new JDBCOpenTable(act, rSet.getValue()));
+            rTable.getValue().addRows(rSet.getValue());
+
+            stream = DSRuntime.run(new Runnable() {
+                @Override
+                public void run() {
+                    while (invoc.isOpen()) {
+                        try {
+                            rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
+                            rTable.getValue().addRows(rSet.getValue());
+                        } catch (SQLException e) {
+                            warn("Failed to fetch JDBCv2 SQL table: " + e);
+                        }
+                    }
+                }
+            }, 0, interval);
+
+        } catch (SQLException e) {
+            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            if (stream != null) {
+                stream.cancel();
+            }
+            warn("Failed to connect to Database: " + db_name.getValue());
+            warn(e);
+        }
+        return res;
+    }
+
 
     private DSAction makeRemoveDatabaseAction() {
         return new DSAction() {
@@ -99,6 +161,7 @@ public class DBConnectionNode extends DSNode {
         declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown));
         //Default Actions
         declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
+        declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
         declareDefault(JDBCv2Helpers.REMOVE, makeRemoveDatabaseAction());
     }
 

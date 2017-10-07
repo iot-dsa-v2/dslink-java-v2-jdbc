@@ -6,6 +6,7 @@ import org.iot.dsa.node.DSList;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.Enumeration;
+import java.util.Random;
 
 //import org.apache.commons.dbcp2.BasicDataSource;
 //import org.dsa.iot.jdbc.model.JdbcConfig;
@@ -15,6 +16,8 @@ class JDBCv2Helpers {
     //Global Static Data
     ///////////////////////
     private static DSList cashedDriversNames;
+    private static final char[] ALPHA_CHARS;
+    private static final Random RANDOM = new Random();
 
     ////////////////////
     //String Definitions
@@ -34,6 +37,9 @@ class JDBCv2Helpers {
     static final String REMOVE = "Disconnect";
 
     static final String QUERY = "Query";
+
+    static final String INTERVAL = "Query Interval";
+    static final String STREAM_QUERY = "Streaming Query";
 
     static final String STATUS = "Connection Status";
 
@@ -85,5 +91,21 @@ class JDBCv2Helpers {
             System.out.println(i);
         }
         return cashedDriversNames.copy();
+    }
+
+    static String randomCursorName() {
+        char[] buf = new char[8];
+        for (int i = 0; i < buf.length; ++i) {
+            buf[i] = ALPHA_CHARS[RANDOM.nextInt(ALPHA_CHARS.length)];
+        }
+        return new String(buf);
+    }
+
+    static {
+        StringBuilder tmp = new StringBuilder();
+        for (char ch = 'a'; ch <= 'z'; ++ch) {
+            tmp.append(ch);
+        }
+        ALPHA_CHARS = tmp.toString().toCharArray();
     }
 }
