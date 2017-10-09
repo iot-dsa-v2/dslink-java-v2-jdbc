@@ -4,6 +4,7 @@ import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSMetadata;
 import org.iot.dsa.node.DSValueType;
+import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
 import org.iot.dsa.util.DSException;
@@ -20,7 +21,6 @@ public class JDBCOpenTable implements ActionTable {
 
     private ActionSpec act;
     private List<DSMap> cols;
-    private List<DSList> rows;
     private int columnCount;
 
     JDBCOpenTable(ActionSpec act, ResultSet res) throws SQLException {
@@ -32,8 +32,6 @@ public class JDBCOpenTable implements ActionTable {
         for (int i = 1; i <= columnCount; i++) {
             cols.add(makeStrColumn(meta.getColumnName(i)));
         }
-
-        rows = new LinkedList<>();
     }
 
     private static DSMap makeStrColumn(String name) {
@@ -47,17 +45,17 @@ public class JDBCOpenTable implements ActionTable {
 
     @Override
     public Iterator<DSList> getRows() {
-        return rows.iterator();
+        return new LinkedList<DSList>().iterator();
     }
 
-    public void addRows(ResultSet res) throws SQLException {
+    public void sendRows(ResultSet res, ActionInvocation invoc) throws SQLException {
         if (res.getMetaData().getColumnCount() == columnCount) {
             while (res.next()) {
                 DSList row = new DSList();
                 for (int i = 1; i <= columnCount; i++) {
                     row.add(res.getString(i));
                 }
-                rows.add(row);
+                invoc.send(row);
             }
         } else {
             //TODO: clean up error handling

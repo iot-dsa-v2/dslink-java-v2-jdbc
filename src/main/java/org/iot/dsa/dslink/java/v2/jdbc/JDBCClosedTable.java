@@ -22,10 +22,12 @@ public class JDBCClosedTable implements ActionTable {
 
         ResultSetMetaData meta = res.getMetaData();
         int columnCount = meta.getColumnCount();
+
         cols = new LinkedList<>();
         for (int i = 1; i <= columnCount; i++) {
             cols.add(makeStrColumn(meta.getColumnName(i)));
         }
+
         rows = new LinkedList<>();
         while (res.next()) {
             DSList row = new DSList();

@@ -86,7 +86,7 @@ public class DBConnectionNode extends DSNode {
     private ActionResult runStreamingQuery(final ActionInvocation invoc, DSAction act) {
         //TODO: add database query code here
         DSMap params = invoc.getParameters();
-        String query = params.get(JDBCv2Helpers.QUERY).toString();
+        final String query = params.getString(JDBCv2Helpers.QUERY);
         Long interval = params.getLong(JDBCv2Helpers.INTERVAL);
         final Container<ResultSet> rSet = new Container<>();
         final Container<JDBCOpenTable> rTable = new Container<>();
@@ -100,11 +100,11 @@ public class DBConnectionNode extends DSNode {
             Connection conn = pool_data_source.getConnection();
             conn.setAutoCommit(false);
             stmt = conn.createStatement();
-            stmt.execute("DECLARE " + cursName + " CURSOR FOR " + query);
+            stmt.execute("DECLARE " + "asdlkfjsa" + " CURSOR FOR " + query);
 
             rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
             rTable.setValue(new JDBCOpenTable(act, rSet.getValue()));
-            rTable.getValue().addRows(rSet.getValue());
+            rTable.getValue().sendRows(rSet.getValue(), invoc);
 
             stream = DSRuntime.run(new Runnable() {
                 @Override
@@ -112,7 +112,7 @@ public class DBConnectionNode extends DSNode {
                     while (invoc.isOpen()) {
                         try {
                             rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
-                            rTable.getValue().addRows(rSet.getValue());
+                            rTable.getValue().sendRows(rSet.getValue(), invoc);
                         } catch (SQLException e) {
                             warn("Failed to fetch JDBCv2 SQL table: " + e);
                         }

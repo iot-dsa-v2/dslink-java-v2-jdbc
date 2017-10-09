@@ -14,7 +14,7 @@ import org.iot.dsa.node.action.DSAction;
  *
  * @author Aaron Hansen
  */
-public class Main extends DSRootNode implements Runnable, DSRequester {
+public class RootNode extends DSRootNode implements Runnable, DSRequester {
 
     ///////////////////////////////////////////////////////////////////////////
     // Constants
@@ -41,7 +41,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
     // Methods
     ///////////////////////////////////////////////////////////////////////////
 
-    public Main() {
+    public RootNode() {
     }
 
     private void registerDriver(String drvr) {
@@ -55,7 +55,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
 
     @Override
     public void onConnected(DSRequesterInterface session) {
-        Main.session = session;
+        RootNode.session = session;
     }
 
     @Override
@@ -69,7 +69,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction action = new DSAction();
         declareDefault("Reset", action);
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
-        //Action to manually add a driver currently unused
+        //TODO: Create action to manually add a driver
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }
 
@@ -77,7 +77,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction act = new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((Main) info.getParent()).addNewDatabase(invocation.getParameters());
+                return ((RootNode) info.getParent()).addNewDatabase(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
@@ -103,7 +103,7 @@ public class Main extends DSRootNode implements Runnable, DSRequester {
         DSAction act = new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((Main) info.getParent()).addNewDriver(invocation.getParameters());
+                return ((RootNode) info.getParent()).addNewDriver(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DRIVER_NAME, DSValueType.STRING, null);

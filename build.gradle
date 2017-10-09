@@ -9,6 +9,10 @@ group 'org.iot.dsa'
 
 mainClassName = 'org.iot.dsa.dslink.DSLink'
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.2'
+}
+
 repositories {
     mavenCentral()
     jcenter()
