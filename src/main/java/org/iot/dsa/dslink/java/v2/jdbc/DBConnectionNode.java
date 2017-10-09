@@ -15,14 +15,21 @@ import com.mchange.v2.c3p0.*;
 
 public class DBConnectionNode extends DSNode {
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Fields
+    ///////////////////////////////////////////////////////////////////////////
+
     private final DSInfo db_name = getInfo(JDBCv2Helpers.DB_NAME);
     private final DSInfo db_url = getInfo(JDBCv2Helpers.DB_URL);
     private final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
     private final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
     private final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
     private final DSInfo conn_status = getInfo(JDBCv2Helpers.STATUS);
-    //private Connection conn = null;
     private ComboPooledDataSource pool_data_source = null;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Constructors
+    ///////////////////////////////////////////////////////////////////////////
 
     public DBConnectionNode () {
 
@@ -36,9 +43,9 @@ public class DBConnectionNode extends DSNode {
         put(password, DSPasswordAes.valueOf(params.get(JDBCv2Helpers.DB_PASSWORD).toString()));
     }
 
-    //////////////////////////////////////
-    //Database Actions
-    //////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    //Actions for ConnectionNode
+    ///////////////////////////////////////////////////////////////////////////
 
     private DSAction makeQueryAction() {
         DSAction act = new DSAction() {
@@ -54,7 +61,6 @@ public class DBConnectionNode extends DSNode {
 
     private ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
-        //query = "SELECT * FROM ALARM_RECORDS";
         JDBCClosedTable res = null;
         try {
             Connection conn = pool_data_source.getConnection();
@@ -70,6 +76,7 @@ public class DBConnectionNode extends DSNode {
         return res;
     }
 
+    //TODO: Implement Streaming Queries
     private DSAction makeStreamingQueryAction() {
         DSAction act = new DSAction() {
             @Override
@@ -84,14 +91,12 @@ public class DBConnectionNode extends DSNode {
     }
 
     private ActionResult runStreamingQuery(final ActionInvocation invoc, DSAction act) {
-        //TODO: add database query code here
         DSMap params = invoc.getParameters();
         final String query = params.getString(JDBCv2Helpers.QUERY);
         Long interval = params.getLong(JDBCv2Helpers.INTERVAL);
         final Container<ResultSet> rSet = new Container<>();
         final Container<JDBCOpenTable> rTable = new Container<>();
         final Statement stmt;
-        //query = "SELECT * FROM ALARM_RECORDS";
         JDBCOpenTable res = null;
         DSRuntime.Timer stream = null;
         try {
@@ -131,7 +136,6 @@ public class DBConnectionNode extends DSNode {
         return res;
     }
 
-
     private DSAction makeRemoveDatabaseAction() {
         return new DSAction() {
             @Override
@@ -149,6 +153,10 @@ public class DBConnectionNode extends DSNode {
         getParent().remove(getInfo());
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    //Misc Method Overrides
+    ///////////////////////////////////////////////////////////////////////////
+
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
@@ -158,10 +166,11 @@ public class DBConnectionNode extends DSNode {
         declareDefault(JDBCv2Helpers.DB_URL, DSString.valueOf("No URL"));
         declareDefault(JDBCv2Helpers.DRIVER, DSString.valueOf("No Driver"));
         declareDefault(JDBCv2Helpers.DB_PASSWORD, DSPasswordAes.valueOf("No Pass")).setHidden(true);
-        declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown));
+        declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown)).setReadOnly(true);
         //Default Actions
         declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
-        declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
+        //TODO: Add streaming Queries
+        //declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
         declareDefault(JDBCv2Helpers.REMOVE, makeRemoveDatabaseAction());
     }
 
@@ -172,8 +181,7 @@ public class DBConnectionNode extends DSNode {
             String name = usr_name.getValue().toString();
             String pass = ((DSPasswordAes) password.getValue()).decode();
             String drvr = driver.getValue().toString();
-            //Debug message
-            //info(url + ", " + name + ", " + pass);
+
             pool_data_source = new ComboPooledDataSource();
             pool_data_source.setDriverClass(drvr); //loads the jdbc driver
             pool_data_source.setJdbcUrl(url);
@@ -186,14 +194,16 @@ public class DBConnectionNode extends DSNode {
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
 
-            //conn = DriverManager.getConnection(url, name, pass);
             put(conn_status, DSString.valueOf(ConnStates.Connected));
         } catch (PropertyVetoException e) {
             put(conn_status, DSString.valueOf(ConnStates.Failed));
-            warn("Failed to connect to Database: " + db_name.getValue());
-            warn(e);
+            warn("Failed to connect to Database: " + db_name.getValue() + " Message: " + e);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    //Helper Class
+    ///////////////////////////////////////////////////////////////////////////
 
     public enum ConnStates {
         Connected,
