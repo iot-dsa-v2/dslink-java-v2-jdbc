@@ -63,9 +63,9 @@ Each connection node represents a new database connection.
 DRIVERS
 
 This software uses the following drivers for connecting to databases:
-[MySQL](https://dev.mysql.com/)
-[H2 Database Engine](http://www.h2database.com)
-[PostgreSQL](https://www.postgresql.org/)
+* [MySQL](https://dev.mysql.com/)
+* [H2 Database Engine](http://www.h2database.com)
+* [PostgreSQL](https://www.postgresql.org/)
 
 SDK-DSLINK-JAVA
 
