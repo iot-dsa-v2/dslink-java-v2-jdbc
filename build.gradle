@@ -46,7 +46,7 @@ applicationDistribution.from(new File(project.projectDir, "/dslink.json"))
 
 build {
     //Gets version from dslink.json file
-    def inputFile = new File("dslink.json")
+    def inputFile = file("dslink.json")
     def json = new JsonSlurper().parseText(inputFile.text)
     version = json.version
 }

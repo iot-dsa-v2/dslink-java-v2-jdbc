@@ -73,12 +73,12 @@ class JDBCv2Helpers {
 //        return dataSource;
 //    }
 
-    public static void registerDriver(String driverClass) throws ClassNotFoundException {
+    static void registerDriver(String driverClass) throws ClassNotFoundException {
         Class.forName(driverClass);
         cashedDriversNames = null;
     }
 
-    public static DSList getRegisteredDrivers() {
+    static DSList getRegisteredDrivers() {
         if (cashedDriversNames == null) {
             Enumeration<Driver> drivers = DriverManager.getDrivers();
             cashedDriversNames = new DSList();
@@ -90,11 +90,11 @@ class JDBCv2Helpers {
                 }
             }
         }
-        //TODO: remove debugs
-        System.out.println("Driver List:");
-        for (DSElement i : cashedDriversNames) {
-            System.out.println(i);
-        }
+
+//        System.out.println("Driver List:");
+//        for (DSElement i : cashedDriversNames) {
+//            System.out.println(i);
+//        }
         return cashedDriversNames.copy();
     }
 
