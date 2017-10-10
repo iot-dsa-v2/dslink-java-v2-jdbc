@@ -1,6 +1,7 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
 import org.iot.dsa.DSRuntime;
+import org.iot.dsa.logging.DSLogging;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
@@ -67,7 +68,7 @@ public class DBConnectionNode extends DSNode {
             Statement stmt = conn.createStatement();
             ResultSet rSet = stmt.executeQuery(query);
             System.out.println(rSet.toString());
-            res = new JDBCClosedTable(act, rSet);
+            res = new JDBCClosedTable(act, rSet, getLogger());
         } catch (SQLException e) {
             put(conn_status, DSString.valueOf(ConnStates.Failed));
             warn("Failed to connect to Database: " + db_name.getValue());
@@ -108,7 +109,7 @@ public class DBConnectionNode extends DSNode {
             stmt.execute("DECLARE " + "asdlkfjsa" + " CURSOR FOR " + query);
 
             rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
-            rTable.setValue(new JDBCOpenTable(act, rSet.getValue()));
+            rTable.setValue(new JDBCOpenTable(act, rSet.getValue(), getLogger()));
             rTable.getValue().sendRows(rSet.getValue(), invoc);
 
             stream = DSRuntime.run(new Runnable() {

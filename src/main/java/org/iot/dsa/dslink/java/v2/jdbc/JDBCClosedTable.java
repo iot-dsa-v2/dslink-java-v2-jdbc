@@ -11,34 +11,30 @@ import java.sql.Types;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import static java.awt.image.DataBuffer.TYPE_DOUBLE;
+import java.util.logging.Logger;
 
 public class JDBCClosedTable implements ActionTable {
 
     private ActionSpec act;
+    private ResultSet res;
+    private Logger log;
     private List<DSMap> cols;
-    private List<DSList> rows;
+    private int columnCount;
+    private ColType[] colTypes;
 
-    JDBCClosedTable(ActionSpec act, ResultSet res) throws SQLException {
+    JDBCClosedTable(ActionSpec act, ResultSet res, Logger log) throws SQLException {
         this.act = act;
+        this.res = res;
+        this.log = log;
 
         ResultSetMetaData meta = res.getMetaData();
-        int columnCount = meta.getColumnCount();
+        columnCount = meta.getColumnCount();
 
+        colTypes = new ColType[columnCount + 1];
         cols = new LinkedList<>();
         for (int i = 1; i <= columnCount; i++) {
-            DSValueType type = getColumnType(meta, i);
+            DSValueType type = setColumnType(meta, i);
             cols.add(makeColumn(meta.getColumnName(i), type));
-        }
-
-        rows = new LinkedList<>();
-        while (res.next()) {
-            DSList row = new DSList();
-            for (int i = 1; i <= columnCount; i++) {
-                row.add(res.getString(i));
-            }
-            rows.add(row);
         }
     }
 
@@ -46,8 +42,9 @@ public class JDBCClosedTable implements ActionTable {
         return new DSMetadata().setName(name).setType(type).getMap();
     }
 
-    private static DSValueType getColumnType(ResultSetMetaData meta, int idx) {
+    private DSValueType setColumnType(ResultSetMetaData meta, int idx) {
         DSValueType ret = DSValueType.STRING;
+        colTypes[idx] = ColType.TYPE_STRING;
 
         try {
             switch (meta.getColumnType(idx))
@@ -55,15 +52,18 @@ public class JDBCClosedTable implements ActionTable {
                 //null
                 case Types.NULL :
                     ret = DSValueType.STRING;
+                    colTypes[idx] = ColType.TYPE_STRING;
                     break;
                 //boolean
                 case Types.BOOLEAN :
                     ret = DSValueType.BOOL;
+                    colTypes[idx] = ColType.TYPE_BOOLEAN;
                     break;
                 //date
                 case Types.DATE :
                 case Types.TIMESTAMP :
                     ret = DSValueType.STRING;
+                    colTypes[idx] = ColType.TYPE_DATE;
                     break;
                 //double
                 case Types.DECIMAL :
@@ -72,10 +72,12 @@ public class JDBCClosedTable implements ActionTable {
                 case Types.NUMERIC :
                 case Types.REAL :
                     ret = DSValueType.NUMBER;
+                    colTypes[idx] = ColType.TYPE_DOUBLE;
                     break;
                 //duration
                 case Types.TIME :
                     ret = DSValueType.STRING;
+                    colTypes[idx] = ColType.TYPE_TIME;
                     break;
                 //long
                 case Types.BIT :
@@ -84,14 +86,64 @@ public class JDBCClosedTable implements ActionTable {
                 case Types.SMALLINT :
                 case Types.TINYINT :
                     ret = DSValueType.NUMBER;
+                    colTypes[idx] = ColType.TYPE_LONG;
                     break;
-                // String by default
             }
         } catch (SQLException e) {
             //Not critical, will default to string in case of error.
         }
-
         return ret;
+    }
+
+    private DSList getCurrentRow() throws SQLException {
+        DSList row = new DSList();
+        for (int idx = 1; idx <= columnCount; idx++) {
+            try
+            {
+                switch (colTypes[idx])
+                {
+                    case TYPE_BOOLEAN :
+                        row.add(res.getBoolean(idx));
+                        continue;
+                    case TYPE_DATE :
+                        java.sql.Timestamp d = res.getTimestamp(idx);
+                        if (d == null)
+                            row.add(DSElement.makeNull());
+                        else
+                            row.add(org.iot.dsa.time.DSDateTime.valueOf(d.getTime()).toString());
+                        continue;
+                    case TYPE_TIME :
+                        java.sql.Time t = res.getTime(idx);
+                        if (t == null)
+                            row.add(DSElement.makeNull());
+                        else
+                            row.add(t.toString());
+                        continue;
+                    case TYPE_DOUBLE :
+                        row.add(res.getDouble(idx));
+                        continue;
+                    case TYPE_LONG :
+                        row.add(res.getLong(idx));
+                        continue;
+                    case TYPE_NULL :
+                    case TYPE_IGNORE :
+                        row.add(DSElement.makeNull());
+                        continue;
+                }
+                String str = res.getString(idx);
+                if (str == null)
+                    row.add(DSElement.makeNull());
+                else
+                    row.add(str);
+                continue;
+            }
+            catch (Exception x)
+            {
+                log.warning("Failed to get row element: " + idx + " error: " + x);
+            }
+            row.add(DSElement.makeNull());
+        }
+        return row;
     }
 
     @Override
@@ -101,7 +153,44 @@ public class JDBCClosedTable implements ActionTable {
 
     @Override
     public Iterator<DSList> getRows() {
-        return rows.iterator();
+        try {
+            res.next();
+        } catch (SQLException e) {
+            log.warning("Table is empty! " + e);
+        }
+        return new Iterator<DSList>() {
+
+            @Override
+            public boolean hasNext() {
+                boolean result = true;
+                try {
+                    result = !res.isAfterLast();
+                } catch (SQLException e) {
+                    //No next if broken :)
+                    result = false;
+                }
+                return  result;
+            }
+
+            @Override
+            public DSList next() {
+                DSList row = null;
+                try {
+                    if (res.isBeforeFirst()) res.next();
+                    row = getCurrentRow();
+                    res.next();
+                } catch (SQLException e) {
+                    log.warning("Failed to fetch next row: " + e);
+                }
+                return row;
+            }
+
+            @Override
+            public void remove() {
+                //Does nothing
+                //TODO: Implement remove, maybe skip?
+            }
+        };
     }
 
     @Override
@@ -111,6 +200,16 @@ public class JDBCClosedTable implements ActionTable {
 
     @Override
     public void onClose() {
+    }
 
+    private enum ColType {
+        TYPE_BOOLEAN,
+        TYPE_DATE,
+        TYPE_DOUBLE,
+        TYPE_IGNORE,
+        TYPE_LONG,
+        TYPE_NULL,
+        TYPE_STRING,
+        TYPE_TIME
     }
 }

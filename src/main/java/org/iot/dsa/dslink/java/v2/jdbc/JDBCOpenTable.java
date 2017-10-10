@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class JDBCOpenTable implements ActionTable {
 
@@ -23,7 +24,7 @@ public class JDBCOpenTable implements ActionTable {
     private List<DSMap> cols;
     private int columnCount;
 
-    JDBCOpenTable(ActionSpec act, ResultSet res) throws SQLException {
+    JDBCOpenTable(ActionSpec act, ResultSet res, Logger logger) throws SQLException {
         this.act = act;
 
         ResultSetMetaData meta = res.getMetaData();

@@ -42,6 +42,7 @@ public class RootNode extends DSRootNode {
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
+        declareDefault("Docs", DSString.valueOf("https://github.com/iot-dsa-v2/dslink-java-v2-jdbc")).setReadOnly(true).setTransient(true);
         //TODO: Create action to manually add a driver
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }

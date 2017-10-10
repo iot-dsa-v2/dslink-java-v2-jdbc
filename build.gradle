@@ -27,7 +27,6 @@ dependencies {
     compile 'org.iot.dsa:dslink-core:+'
     compile 'org.iot.dsa:dslink-websocket-standalone:+'
     compile 'org.glassfish.tyrus.bundles:tyrus-standalone-client:+'
-
     //c3p0 for connection pools
     compile 'com.mchange:c3p0:+'
 
