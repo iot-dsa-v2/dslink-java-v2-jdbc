@@ -9,6 +9,7 @@ import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
 import org.iot.dsa.util.DSException;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -24,7 +25,7 @@ public class JDBCOpenTable implements ActionTable {
     private List<DSMap> cols;
     private int columnCount;
 
-    JDBCOpenTable(ActionSpec act, ResultSet res, Logger logger) throws SQLException {
+    JDBCOpenTable(ActionSpec act, ResultSet res, Logger loggern) throws SQLException {
         this.act = act;
 
         ResultSetMetaData meta = res.getMetaData();

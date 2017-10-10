@@ -4,10 +4,7 @@ import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -189,6 +186,7 @@ public class JDBCClosedTable implements ActionTable {
             public void remove() {
                 //Does nothing
                 //TODO: Implement remove, maybe skip?
+                throw new UnsupportedOperationException();
             }
         };
     }
@@ -200,6 +198,15 @@ public class JDBCClosedTable implements ActionTable {
 
     @Override
     public void onClose() {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            conn = res.getStatement().getConnection();
+            stmt = res.getStatement();
+        } catch (SQLException e) {
+            log.warning("Failed to properly close the connection: " + e);
+        }
+        JDBCv2Helpers.cleanClose(res, stmt, conn, log);
     }
 
     private enum ColType {

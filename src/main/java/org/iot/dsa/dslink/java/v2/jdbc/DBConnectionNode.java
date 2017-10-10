@@ -1,8 +1,6 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
-import org.iot.dsa.DSRuntime;
 import org.iot.dsa.dslink.DSRootNode;
-import org.iot.dsa.logging.DSLogging;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
@@ -12,7 +10,6 @@ import org.iot.dsa.security.DSPasswordAes;
 
 import java.beans.PropertyVetoException;
 import java.sql.*;
-import java.time.Instant;
 
 import com.mchange.v2.c3p0.*;
 import org.iot.dsa.time.DSDateTime;
@@ -73,21 +70,12 @@ public class DBConnectionNode extends DSNode {
             conn = pool_data_source.getConnection();
             Statement stmt = conn.createStatement();
             ResultSet rSet = stmt.executeQuery(query);
-            //System.out.println(rSet.toString());
             res = new JDBCClosedTable(act, rSet, getLogger());
+            connSuccess(true);
         } catch (SQLException e) {
             connSuccess(false);
-            warn("Failed to connect to Database: " + db_name.getValue());
-            warn(e);
-        } /*finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e) {
-                    warn("Failed to close connection: " + e);
-                }
-            }
-        }*/
+            warn("Failed to connect to Database: " + db_name.getValue(), e);
+        }
         return res;
     }
 
@@ -264,8 +252,6 @@ public class DBConnectionNode extends DSNode {
             DataSource ds_unpooled = DataSources.unpooledDataSource(url, name, pass);
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
-
-            connSuccess(true);
         } catch (PropertyVetoException e) {
             connSuccess(false);
             warn("Failed to connect to Database: " + db_name.getValue() + " Message: " + e);
@@ -286,21 +272,24 @@ public class DBConnectionNode extends DSNode {
 
     private void testDataPool() {
         Connection conn = null;
+        Statement stmt = null;
+        ResultSet res = null;
         try {
             conn = pool_data_source.getConnection();
-            Statement stmt = conn.createStatement();
-            stmt.executeQuery("SELECT 1");
+            stmt = conn.createStatement();
+            res = stmt.executeQuery("SELECT 1");
             connSuccess(true);
         } catch (SQLException e) {
             connSuccess(false);
-            warn("Failed to connect to Database: " + db_name.getValue());
-            warn(e);
+            warn("Failed to connect to Database: " + db_name.getValue(), e);
         } finally {
             if (conn != null) {
                 try {
+                    res.close();
+                    stmt.close();
                     conn.close();
                 } catch (SQLException e) {
-                    warn("Failed to close connection: " + e);
+                    warn("Failed to close connection: ", e);
                 }
             }
         }

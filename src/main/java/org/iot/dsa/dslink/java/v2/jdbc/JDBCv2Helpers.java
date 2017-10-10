@@ -3,10 +3,11 @@ package org.iot.dsa.dslink.java.v2.jdbc;
 import org.iot.dsa.node.DSElement;
 import org.iot.dsa.node.DSList;
 
-import java.sql.Driver;
-import java.sql.DriverManager;
+import java.sql.*;
 import java.util.Enumeration;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 //import org.apache.commons.dbcp2.BasicDataSource;
 //import org.dsa.iot.jdbc.model.JdbcConfig;
@@ -103,6 +104,24 @@ class JDBCv2Helpers {
             buf[i] = ALPHA_CHARS[RANDOM.nextInt(ALPHA_CHARS.length)];
         }
         return new String(buf);
+    }
+
+    static void cleanClose(ResultSet res, Statement stmt, Connection conn, Logger log) {
+        try {
+            res.close();
+        } catch (SQLException e) {
+            log.log(Level.WARNING, "Error closing ResultTable", e);
+        }
+        try {
+            stmt.close();
+        } catch (SQLException e) {
+            log.log(Level.WARNING, "Error closing Statement", e);
+        }
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            log.log(Level.WARNING, "Error closing Connection", e);
+        }
     }
 
     static {
