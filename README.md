@@ -1,9 +1,8 @@
 # dslink-java-v2-jdbc
 
-* Version: 0.0.0.0
-* Java - version 1.6 and up.
+* Version: 1.0.0.0
+* Java - version 1.7 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
 
 ## Overview
 
@@ -40,6 +39,9 @@ This is the root node of the link.  It has actions for connecting to new databas
 **Actions**
 - Add DB - Adds a new database
 
+**Values**
+- Docs - Link to the GitHub Documentation
+
 **Child Nodes**
 - ConnectionNode - A new connection node is create for each new database.
 
@@ -49,12 +51,15 @@ Each connection node represents a new database connection.
 
 **Actions**
 - Query - Run an SQL query.
+- Edit - Edit the parameters for the database. (fields left blank are not changed)
 - Disconnect - Disconnect from database and delete the ConnectionNode.
 
 **Values**
 - Connection Status - Displays the status of the connection.
 - DB Name - Display the name of the database node.
 - Driver - Driver used to connect to the database.
+- Last Fail Con - Timestamp when connection last failed
+- Last Success Con - Timestamp when connection was last sucessful
 - URL - URL of the database.
 - User Name - User name used for this connection.
 
@@ -76,5 +81,9 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
+* Version 1.0.0.0
+  - Basic functionality implemented
+  - Add/Remove/Edit Databases
+  - Run Queries
 * Version 0.0.0.0
   - Initial Development

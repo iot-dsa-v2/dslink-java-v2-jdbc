@@ -185,7 +185,6 @@ public class JDBCClosedTable implements ActionTable {
             @Override
             public void remove() {
                 //Does nothing
-                //TODO: Implement remove, maybe skip?
                 throw new UnsupportedOperationException();
             }
         };
