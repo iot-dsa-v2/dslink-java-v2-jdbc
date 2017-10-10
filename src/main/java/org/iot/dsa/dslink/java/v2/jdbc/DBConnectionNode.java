@@ -1,6 +1,7 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
 import org.iot.dsa.DSRuntime;
+import org.iot.dsa.dslink.DSRootNode;
 import org.iot.dsa.logging.DSLogging;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
@@ -11,8 +12,10 @@ import org.iot.dsa.security.DSPasswordAes;
 
 import java.beans.PropertyVetoException;
 import java.sql.*;
+import java.time.Instant;
 
 import com.mchange.v2.c3p0.*;
+import org.iot.dsa.time.DSDateTime;
 
 public class DBConnectionNode extends DSNode {
 
@@ -26,6 +29,8 @@ public class DBConnectionNode extends DSNode {
     private final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
     private final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
     private final DSInfo conn_status = getInfo(JDBCv2Helpers.STATUS);
+    private final DSInfo conn_succ = getInfo(JDBCv2Helpers.LAST_SUCCESS);
+    private final DSInfo conn_fail = getInfo(JDBCv2Helpers.LAST_FAIL);
     private ComboPooledDataSource pool_data_source = null;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -37,11 +42,12 @@ public class DBConnectionNode extends DSNode {
     }
 
     DBConnectionNode (DSMap params) {
-        put(db_name, params.get(JDBCv2Helpers.DB_NAME));
+        setParameters(params);
+/*        put(db_name, params.get(JDBCv2Helpers.DB_NAME));
         put(db_url, params.get(JDBCv2Helpers.DB_URL));
         put(usr_name, params.get(JDBCv2Helpers.DB_USER));
         put(driver, params.get(JDBCv2Helpers.DRIVER));
-        put(password, DSPasswordAes.valueOf(params.get(JDBCv2Helpers.DB_PASSWORD).toString()));
+        put(password, DSPasswordAes.valueOf(params.get(JDBCv2Helpers.DB_PASSWORD).toString()));*/
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -59,26 +65,34 @@ public class DBConnectionNode extends DSNode {
         act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
         return act;
     }
-
     private ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
         JDBCClosedTable res = null;
+        Connection conn = null;
         try {
-            Connection conn = pool_data_source.getConnection();
+            conn = pool_data_source.getConnection();
             Statement stmt = conn.createStatement();
             ResultSet rSet = stmt.executeQuery(query);
-            System.out.println(rSet.toString());
+            //System.out.println(rSet.toString());
             res = new JDBCClosedTable(act, rSet, getLogger());
         } catch (SQLException e) {
-            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            connSuccess(false);
             warn("Failed to connect to Database: " + db_name.getValue());
             warn(e);
-        }
+        } /*finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    warn("Failed to close connection: " + e);
+                }
+            }
+        }*/
         return res;
     }
 
     //TODO: Implement Streaming Queries
-    private DSAction makeStreamingQueryAction() {
+/*    private DSAction makeStreamingQueryAction() {
         DSAction act = new DSAction() {
             @Override
             public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
@@ -90,7 +104,6 @@ public class DBConnectionNode extends DSNode {
         act.setResultType(ActionSpec.ResultType.STREAM_TABLE);
         return act;
     }
-
     private ActionResult runStreamingQuery(final ActionInvocation invoc, DSAction act) {
         DSMap params = invoc.getParameters();
         final String query = params.getString(JDBCv2Helpers.QUERY);
@@ -127,7 +140,7 @@ public class DBConnectionNode extends DSNode {
             }, 0, interval);
 
         } catch (SQLException e) {
-            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            connSuccess(false);
             if (stream != null) {
                 stream.cancel();
             }
@@ -135,7 +148,7 @@ public class DBConnectionNode extends DSNode {
             warn(e);
         }
         return res;
-    }
+    }*/
 
     private DSAction makeRemoveDatabaseAction() {
         return new DSAction() {
@@ -146,12 +159,38 @@ public class DBConnectionNode extends DSNode {
             }
         };
     }
-
     private void removeDatabase() {
         if (pool_data_source != null) {
             pool_data_source.close();
         }
         getParent().remove(getInfo());
+    }
+
+    private DSAction makeEditAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                return ((DBConnectionNode) info.getParent()).edit(invocation.getParameters());
+            }
+        };
+        act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null).setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
+        act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
+        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
+        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
+        //TODO: add default timeout/poolable options
+        //action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
+        //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
+        return act;
+    }
+    private ActionResult edit(DSMap parameters) {
+        setParameters(parameters);
+        createDataPool();
+        DSRootNode par = (DSRootNode) getParent();
+        par.getLink().save();
+        testDataPool();
+        return null;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -168,8 +207,11 @@ public class DBConnectionNode extends DSNode {
         declareDefault(JDBCv2Helpers.DRIVER, DSString.valueOf("No Driver"));
         declareDefault(JDBCv2Helpers.DB_PASSWORD, DSPasswordAes.valueOf("No Pass")).setHidden(true);
         declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown)).setReadOnly(true);
+        declareDefault(JDBCv2Helpers.LAST_SUCCESS, DSString.valueOf("None")).setReadOnly(true);
+        declareDefault(JDBCv2Helpers.LAST_FAIL, DSString.valueOf("None")).setReadOnly(true);
         //Default Actions
         declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
+        declareDefault(JDBCv2Helpers.EDIT, makeEditAction());
         //TODO: Add streaming Queries
         //declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
         declareDefault(JDBCv2Helpers.REMOVE, makeRemoveDatabaseAction());
@@ -177,6 +219,29 @@ public class DBConnectionNode extends DSNode {
 
     @Override
     protected void onStable() {
+        createDataPool();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    //Methods - Helpers
+    ///////////////////////////////////////////////////////////////////////////
+
+    private void setParameters(DSMap params) {
+        if (!params.isNull(JDBCv2Helpers.DB_NAME))
+            put(db_name, params.get(JDBCv2Helpers.DB_NAME));
+        if (!params.isNull(JDBCv2Helpers.DB_URL))
+            put(db_url, params.get(JDBCv2Helpers.DB_URL));
+        if (!params.isNull(JDBCv2Helpers.DB_USER))
+            put(usr_name, params.get(JDBCv2Helpers.DB_USER));
+        if (!params.isNull(JDBCv2Helpers.DRIVER))
+            put(driver, params.get(JDBCv2Helpers.DRIVER));
+        if (!params.isNull(JDBCv2Helpers.DB_PASSWORD))
+            put(password, DSPasswordAes.valueOf(params.get(JDBCv2Helpers.DB_PASSWORD).toString()));
+    }
+
+    private void createDataPool() {
+        if (pool_data_source != null)
+            pool_data_source.close();
         try {
             String url = db_url.getValue().toString();
             String name = usr_name.getValue().toString();
@@ -188,6 +253,11 @@ public class DBConnectionNode extends DSNode {
             pool_data_source.setJdbcUrl(url);
             pool_data_source.setUser(name);
             pool_data_source.setPassword(pass);
+            pool_data_source.setAcquireRetryAttempts(6);
+            pool_data_source.setAcquireRetryDelay(500);
+            pool_data_source.setCheckoutTimeout(3000);
+            //pool_data_source.setTestConnectionOnCheckout(true);
+            //pool_data_source.setPreferredTestQuery("SELECT 1");
 
             //Alternative, uses standard JDBC drivers
             /*
@@ -195,10 +265,44 @@ public class DBConnectionNode extends DSNode {
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
 
-            put(conn_status, DSString.valueOf(ConnStates.Connected));
+            connSuccess(true);
         } catch (PropertyVetoException e) {
-            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            connSuccess(false);
             warn("Failed to connect to Database: " + db_name.getValue() + " Message: " + e);
+        }
+        testDataPool();
+    }
+
+    private void connSuccess(boolean success) {
+        DSDateTime stamp = DSDateTime.valueOf(System.currentTimeMillis());
+        if (success) {
+            put(conn_status, DSString.valueOf(ConnStates.Connected));
+            put(conn_succ, stamp);
+        } else {
+            put(conn_status, DSString.valueOf(ConnStates.Failed));
+            put(conn_fail, stamp);
+        }
+    }
+
+    private void testDataPool() {
+        Connection conn = null;
+        try {
+            conn = pool_data_source.getConnection();
+            Statement stmt = conn.createStatement();
+            stmt.executeQuery("SELECT 1");
+            connSuccess(true);
+        } catch (SQLException e) {
+            connSuccess(false);
+            warn("Failed to connect to Database: " + db_name.getValue());
+            warn(e);
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    warn("Failed to close connection: " + e);
+                }
+            }
         }
     }
 

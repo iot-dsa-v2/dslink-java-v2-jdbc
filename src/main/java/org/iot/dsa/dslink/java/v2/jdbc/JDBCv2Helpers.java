@@ -28,6 +28,8 @@ class JDBCv2Helpers {
     static final String DB_PASSWORD = "Password";
     static final String DRIVER = "Driver";
     static final String ADD_DB = "Add DB";
+    static final String LAST_SUCCESS = "Last Success Con";
+    static final String LAST_FAIL = "Last Fail Con";
 
 
     static final String DRIVER_NAME = "Driver Name";
@@ -37,6 +39,8 @@ class JDBCv2Helpers {
     static final String REMOVE = "Disconnect";
 
     static final String QUERY = "Query";
+
+    static final String EDIT = "Edit";
 
     static final String INTERVAL = "Query Interval";
     static final String STREAM_QUERY = "Streaming Query";
