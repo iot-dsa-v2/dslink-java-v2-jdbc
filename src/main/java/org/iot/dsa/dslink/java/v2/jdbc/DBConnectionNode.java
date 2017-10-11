@@ -284,13 +284,7 @@ public class DBConnectionNode extends DSNode {
             warn("Failed to connect to Database: " + db_name.getValue(), e);
         } finally {
             if (conn != null) {
-                try {
-                    res.close();
-                    stmt.close();
-                    conn.close();
-                } catch (SQLException e) {
-                    warn("Failed to close connection: ", e);
-                }
+                JDBCv2Helpers.cleanClose(res, stmt, conn, getLogger());
             }
         }
     }
