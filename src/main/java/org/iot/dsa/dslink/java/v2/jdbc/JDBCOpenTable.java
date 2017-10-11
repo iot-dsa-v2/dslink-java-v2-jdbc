@@ -7,13 +7,10 @@ import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
-import org.iot.dsa.util.DSException;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,6 +48,7 @@ public class JDBCOpenTable implements ActionTable {
     }
 
     public void sendRows(ResultSet res, ActionInvocation invoc) throws SQLException {
+        //noinspection StatementWithEmptyBody
         if (res.getMetaData().getColumnCount() == columnCount) {
             while (res.next()) {
                 DSList row = new DSList();

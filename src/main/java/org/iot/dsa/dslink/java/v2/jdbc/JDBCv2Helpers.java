@@ -107,20 +107,26 @@ class JDBCv2Helpers {
     }
 
     static void cleanClose(ResultSet res, Statement stmt, Connection conn, Logger log) {
-        try {
-            res.close();
-        } catch (SQLException e) {
-            log.log(Level.WARNING, "Error closing ResultTable", e);
+        if (res != null) {
+            try {
+                res.close();
+            } catch (SQLException e) {
+                log.log(Level.WARNING, "Error closing ResultTable", e);
+            }
         }
-        try {
-            stmt.close();
-        } catch (SQLException e) {
-            log.log(Level.WARNING, "Error closing Statement", e);
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                log.log(Level.WARNING, "Error closing Statement", e);
+            }
         }
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            log.log(Level.WARNING, "Error closing Connection", e);
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                log.log(Level.WARNING, "Error closing Connection", e);
+            }
         }
     }
 

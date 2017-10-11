@@ -1,5 +1,7 @@
 package org.iot.dsa.dslink.java.v2.jdbc;
 
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.iot.dsa.dslink.DSRequestException;
 import org.iot.dsa.dslink.DSRootNode;
 import org.iot.dsa.node.*;
 import org.iot.dsa.node.action.ActionInvocation;
@@ -7,12 +9,14 @@ import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
 import org.iot.dsa.security.DSPasswordAes;
+import org.iot.dsa.time.DSDateTime;
+import org.iot.dsa.util.DSException;
 
 import java.beans.PropertyVetoException;
-import java.sql.*;
-
-import com.mchange.v2.c3p0.*;
-import org.iot.dsa.time.DSDateTime;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DBConnectionNode extends DSNode {
 
@@ -34,11 +38,11 @@ public class DBConnectionNode extends DSNode {
     // Methods - Constructors
     ///////////////////////////////////////////////////////////////////////////
 
-    public DBConnectionNode () {
+    public DBConnectionNode() {
 
     }
 
-    DBConnectionNode (DSMap params) {
+    DBConnectionNode(DSMap params) {
         setParameters(params);
 /*        put(db_name, params.get(JDBCv2Helpers.DB_NAME));
         put(db_url, params.get(JDBCv2Helpers.DB_URL));
@@ -62,19 +66,31 @@ public class DBConnectionNode extends DSNode {
         act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
         return act;
     }
+
     private ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
-        JDBCClosedTable res = null;
         Connection conn = null;
+        Statement stmt = null;
+        ResultSet rSet = null;
+        @SuppressWarnings("UnusedAssignment") JDBCClosedTable res = null;
         try {
             conn = pool_data_source.getConnection();
-            Statement stmt = conn.createStatement();
-            ResultSet rSet = stmt.executeQuery(query);
-            res = new JDBCClosedTable(act, rSet, getLogger());
+            stmt = conn.createStatement();
             connSuccess(true);
+            try {
+                rSet = stmt.executeQuery(query);
+                res = new JDBCClosedTable(act, rSet, getLogger());
+            } catch (SQLException e) {
+                put(conn_status, DSString.valueOf(ConnStates.Unknown));
+                JDBCv2Helpers.cleanClose(rSet, stmt, conn, getLogger());
+                throw new DSRequestException("Query failed: " + e);
+            }
         } catch (SQLException e) {
             connSuccess(false);
+            //noinspection ConstantConditions
+            JDBCv2Helpers.cleanClose(rSet, stmt, conn, getLogger());
             warn("Failed to connect to Database: " + db_name.getValue(), e);
+            throw new DSRequestException("Database connection failed: " + e);
         }
         return res;
     }
@@ -147,6 +163,7 @@ public class DBConnectionNode extends DSNode {
             }
         };
     }
+
     private void removeDatabase() {
         if (pool_data_source != null) {
             pool_data_source.close();
@@ -172,6 +189,7 @@ public class DBConnectionNode extends DSNode {
         //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
         return act;
     }
+
     private ActionResult edit(DSMap parameters) {
         setParameters(parameters);
         createDataPool();
@@ -277,6 +295,7 @@ public class DBConnectionNode extends DSNode {
         try {
             conn = pool_data_source.getConnection();
             stmt = conn.createStatement();
+            //noinspection SqlNoDataSourceInspection
             res = stmt.executeQuery("SELECT 1");
             connSuccess(true);
         } catch (SQLException e) {
