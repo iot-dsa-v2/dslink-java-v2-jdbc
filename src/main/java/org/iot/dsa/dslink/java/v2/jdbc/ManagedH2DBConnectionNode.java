@@ -2,16 +2,13 @@ package org.iot.dsa.dslink.java.v2.jdbc;
 
 import org.h2.tools.Server;
 import org.iot.dsa.dslink.DSRootNode;
-import org.iot.dsa.node.DSBool;
-import org.iot.dsa.node.DSElement;
-import org.iot.dsa.node.DSInfo;
-import org.iot.dsa.node.DSMap;
+import org.iot.dsa.node.*;
+import org.iot.dsa.node.action.ActionInvocation;
 import org.iot.dsa.node.action.ActionResult;
+import org.iot.dsa.node.action.ActionSpec;
+import org.iot.dsa.node.action.DSAction;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * Class designed for handling user-friendly simple local H2 databases.
@@ -40,28 +37,51 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
         super(params);
     }
 
+    private DSAction makeShowTablesAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                invocation.getParameters().put(JDBCv2Helpers.QUERY, "SHOW TABLES");
+                DBConnectionNode par = (DBConnectionNode) info.getParent();
+                ResultSet res = par.executeQuery("SHOW TABLES");
+                if (invocation.getParameters().get(JDBCv2Helpers.MAKE_NODES).toBoolean()) {
+                    try {
+                        while (res.next()) {
+                            String nxtNode = res.getString(1);
+                            if (par.get(nxtNode) == null) par.add(nxtNode, new TableNode());
+                        }
+                    } catch (SQLException e) {
+                        warn("Failed to read table list: ", e);
+                    }
+                }
+                return ((DBConnectionNode) info.getParent()).runQuery(invocation.getParameters(), this);
+            }
+        };
+        act.addParameter(JDBCv2Helpers.MAKE_NODES, DSValueType.BOOL, null).setDefault(DSElement.make(false));
+        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        return act;
+    }
+
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.EXT_ACCESS, DSBool.make(false));
+        declareDefault(JDBCv2Helpers.SHOW_TABLES, makeShowTablesAction());
+    }
+
+    @Override
+    protected void onStable() {
+        super.onStable();
+        //TODO: Ask AAron if this is the best way to get boolean
+        if (extrnl.getValue().toElement().toBoolean()) {
+            startTCPServer();
+        } else {
+            stopTCPServer();
+        }
     }
 
     @Override
     Connection getConnection() throws SQLException {
-        //TODO: remove check
-        if (!driver_loaded) {
-            try {
-                Class.forName("org.h2.Driver");
-            } catch (ClassNotFoundException e) {
-                warn("Failed to load H2 driver :", e);
-            }
-            driver_loaded = true;
-        }
-        //TODO: Ask AAron if this is the best way to get boolean
-        if (extrnl.getValue().toElement().toBoolean()) {
-            startTCPServer();
-        }
-
         try {
             updateServerURL();
             return DriverManager.getConnection("jdbc:h2:" + getCurDBName(),

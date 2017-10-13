@@ -44,6 +44,9 @@ class JDBCv2Helpers {
 
     static final String QUERY = "Query";
     static final String UPDATE = "Update";
+    static final String MAKE_NODES = "Nodes";
+    static final String SHOW_TABLES = "Show Tables";
+    static final String SHOW_TABLE = "Show Table";
 
     static final String EDIT = "Edit";
 

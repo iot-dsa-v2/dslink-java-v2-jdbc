@@ -65,22 +65,33 @@ abstract public class DBConnectionNode extends DSNode {
         return act;
     }
 
-    private ActionResult runQuery(DSMap params, DSAction act) {
+    ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
+        ResultSet rSet = executeQuery(query);
+        ActionResult res;
+        try {
+            res = new JDBCClosedTable(act, rSet, getLogger());
+        } catch (SQLException e) {
+            put(conn_status, DSString.valueOf(ConnStates.Unknown));
+            JDBCv2Helpers.cleanClose(rSet, null, null, getLogger());
+            throw new DSRequestException("Failed to retrieve data from database: " + e);
+        }
+        return res;
+    }
+
+    ResultSet executeQuery(String sqlQuery) {
         Connection conn = null;
         Statement stmt = null;
         ResultSet rSet = null;
-        @SuppressWarnings("UnusedAssignment") JDBCClosedTable res = null;
         try {
             conn = getConnection();
             stmt = conn.createStatement();
             connSuccess(true);
             try {
-                rSet = stmt.executeQuery(query);
-                res = new JDBCClosedTable(act, rSet, getLogger());
+                rSet = stmt.executeQuery(sqlQuery);
             } catch (SQLException e) {
                 put(conn_status, DSString.valueOf(ConnStates.Unknown));
-                JDBCv2Helpers.cleanClose(rSet, stmt, conn, getLogger());
+                JDBCv2Helpers.cleanClose(null, stmt, conn, getLogger());
                 throw new DSRequestException("Query failed: " + e);
             }
         } catch (SQLException e) {
@@ -90,7 +101,7 @@ abstract public class DBConnectionNode extends DSNode {
             warn("Failed to connect to Database: " + db_name.getValue(), e);
             throw new DSRequestException("Database connection failed: " + e);
         }
-        return res;
+        return rSet;
     }
 
     private DSAction makeUpdateAction() {

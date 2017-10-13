@@ -1,6 +1,6 @@
 # dslink-java-v2-jdbc
 
-* Version: 1.2.0.0
+* Version: 1.2.1.0
 * Java - version 1.7 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -55,6 +55,7 @@ Each connection node represents a new database connection.
 - Update - Run an SQL query to modify the database
 - Edit - Edit the parameters for the database (fields left blank are not changed)
 - Disconnect - Disconnect from database and delete the ConnectionNode (database remains unchanged)
+- Show Tables - (H2 only) Shows a list of all the available tables, with an option to create a node for each
 
 **Values**
 - Connection Status - Displays the status of the connection
@@ -65,6 +66,13 @@ Each connection node represents a new database connection.
 - URL - URL of the database
 - User Name - User name used for this connection
 - Allow Access - (H2 only) creates a server to allow access from other clients
+
+### TableNode
+
+Each table node represents a single table in the connected database
+
+**Actions**
+- Show Table - Shows the table contents
 
 ## Acknowledgements
 
@@ -84,6 +92,8 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
+* Version 1.2.1.0
+  - Added simple table management for H2 database
 * Version 1.2.0.0
   - Added H2 database creation capability
   - Added H2 database server option
