@@ -16,6 +16,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Class for handling streaming tables. Currently not used.
+ *
+ * @author James (Juris) Puchin
+ * Created on 10/13/2017
+ */
 public class JDBCOpenTable implements ActionTable {
 
     private ActionSpec act;
@@ -58,7 +64,7 @@ public class JDBCOpenTable implements ActionTable {
                 invoc.send(row);
             }
         } else {
-            //TODO: clean up error handling
+            //TODO: clean up error handling, is exception needed here?
         }
     }
 

@@ -2,20 +2,29 @@ package org.iot.dsa.dslink.java.v2.jdbc;
 
 import org.h2.tools.Server;
 import org.iot.dsa.dslink.DSRootNode;
-import org.iot.dsa.node.*;
+import org.iot.dsa.node.DSBool;
+import org.iot.dsa.node.DSElement;
+import org.iot.dsa.node.DSInfo;
+import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.action.ActionResult;
-import org.iot.dsa.security.DSPasswordAes;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Class designed for handling user-friendly simple local H2 databases.
+ *
+ * @author James (Juris) Puchin
+ * Created on 10/13/2017
+ */
 @SuppressWarnings("SqlNoDataSourceInspection")
 public class ManagedH2DBConnectionNode extends DBConnectionNode {
 
     private final DSInfo extrnl = getInfo(JDBCv2Helpers.EXT_ACCESS);
     private static String NO_URL = "No Access";
+    private boolean driver_loaded = false;
     private Server server;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -39,19 +48,25 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
 
     @Override
     Connection getConnection() throws SQLException {
+        //TODO: remove check
+        if (!driver_loaded) {
+            try {
+                Class.forName("org.h2.Driver");
+            } catch (ClassNotFoundException e) {
+                warn("Failed to load H2 driver :", e);
+            }
+            driver_loaded = true;
+        }
         //TODO: Ask AAron if this is the best way to get boolean
         if (extrnl.getValue().toElement().toBoolean()) {
             startTCPServer();
         }
 
-        System.out.println("jdbc:h2:" + getCurDBName());
-        System.out.println(usr_name.getValue().toString());
-        System.out.println(((DSPasswordAes) password.getValue()).decode());
         try {
             updateServerURL();
-            return DriverManager.getConnection("jdbc:h2:" + getCurDBName(), //"jdbc:h2:~/test"
-                    usr_name.getValue().toString(), //"sa"
-                    ((DSPasswordAes) password.getValue()).decode()); //""
+            return DriverManager.getConnection("jdbc:h2:" + getCurDBName(),
+                    usr_name.getValue().toString(),
+                    getCurPass());
         } catch (Exception x) {
             warn("Failed to login:", x);
         }
@@ -97,7 +112,6 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
         Statement chg_usr = null;
         Statement chg_pass = null;
 
-        //TODO: figure out why a missing login or pass field breaks the connection
         try {
             data = getConnection();
             try {
@@ -112,11 +126,15 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
                     newUsrStr = curUserStr;
                 }
 
-                 if (newPass != null) {
-                     chg_pass = data.createStatement();
-                     chg_pass.execute("ALTER USER " + newUsrStr + " SET PASSWORD '" + newPass.toString() + "'");
-                     data.commit();
-                 }
+                if (newPass == null) {
+                    newPass = DSElement.make(getCurPass());
+                }
+
+                //Password must always be re-set after change of user name (JDBC quirk)
+                chg_pass = data.createStatement();
+                chg_pass.execute("ALTER USER " + newUsrStr + " SET PASSWORD '" + newPass.toString() + "'");
+                data.commit();
+
             } catch (Exception ex) {
                 warn("User/Pass change error:", ex);
             }

@@ -11,6 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Class designed to handle tables for non-streaming queries.
+ *
+ * @author James (Juris) Puchin
+ * Created on 10/13/2017
+ */
 public class JDBCClosedTable implements ActionTable {
 
     private ActionSpec act;
@@ -45,44 +51,43 @@ public class JDBCClosedTable implements ActionTable {
         colTypes[idx] = ColType.TYPE_STRING;
 
         try {
-            switch (meta.getColumnType(idx))
-            {
+            switch (meta.getColumnType(idx)) {
                 //null
-                case Types.NULL :
+                case Types.NULL:
                     ret = DSValueType.STRING;
                     colTypes[idx] = ColType.TYPE_STRING;
                     break;
                 //boolean
-                case Types.BOOLEAN :
+                case Types.BOOLEAN:
                     ret = DSValueType.BOOL;
                     colTypes[idx] = ColType.TYPE_BOOLEAN;
                     break;
                 //date
-                case Types.DATE :
-                case Types.TIMESTAMP :
+                case Types.DATE:
+                case Types.TIMESTAMP:
                     ret = DSValueType.STRING;
                     colTypes[idx] = ColType.TYPE_DATE;
                     break;
                 //double
-                case Types.DECIMAL :
-                case Types.DOUBLE :
-                case Types.FLOAT :
-                case Types.NUMERIC :
-                case Types.REAL :
+                case Types.DECIMAL:
+                case Types.DOUBLE:
+                case Types.FLOAT:
+                case Types.NUMERIC:
+                case Types.REAL:
                     ret = DSValueType.NUMBER;
                     colTypes[idx] = ColType.TYPE_DOUBLE;
                     break;
                 //duration
-                case Types.TIME :
+                case Types.TIME:
                     ret = DSValueType.STRING;
                     colTypes[idx] = ColType.TYPE_TIME;
                     break;
                 //long
-                case Types.BIT :
-                case Types.BIGINT :
-                case Types.INTEGER :
-                case Types.SMALLINT :
-                case Types.TINYINT :
+                case Types.BIT:
+                case Types.BIGINT:
+                case Types.INTEGER:
+                case Types.SMALLINT:
+                case Types.TINYINT:
                     ret = DSValueType.NUMBER;
                     colTypes[idx] = ColType.TYPE_LONG;
                     break;
@@ -96,35 +101,33 @@ public class JDBCClosedTable implements ActionTable {
     private DSList getCurrentRow() throws SQLException {
         DSList row = new DSList();
         for (int idx = 1; idx <= columnCount; idx++) {
-            try
-            {
-                switch (colTypes[idx])
-                {
-                    case TYPE_BOOLEAN :
+            try {
+                switch (colTypes[idx]) {
+                    case TYPE_BOOLEAN:
                         row.add(res.getBoolean(idx));
                         continue;
-                    case TYPE_DATE :
+                    case TYPE_DATE:
                         java.sql.Timestamp d = res.getTimestamp(idx);
                         if (d == null)
                             row.add(DSElement.makeNull());
                         else
                             row.add(org.iot.dsa.time.DSDateTime.valueOf(d.getTime()).toString());
                         continue;
-                    case TYPE_TIME :
+                    case TYPE_TIME:
                         java.sql.Time t = res.getTime(idx);
                         if (t == null)
                             row.add(DSElement.makeNull());
                         else
                             row.add(t.toString());
                         continue;
-                    case TYPE_DOUBLE :
+                    case TYPE_DOUBLE:
                         row.add(res.getDouble(idx));
                         continue;
-                    case TYPE_LONG :
+                    case TYPE_LONG:
                         row.add(res.getLong(idx));
                         continue;
-                    case TYPE_NULL :
-                    case TYPE_IGNORE :
+                    case TYPE_NULL:
+                    case TYPE_IGNORE:
                         row.add(DSElement.makeNull());
                         continue;
                 }
@@ -134,9 +137,7 @@ public class JDBCClosedTable implements ActionTable {
                 else
                     row.add(str);
                 continue;
-            }
-            catch (Exception x)
-            {
+            } catch (Exception x) {
                 log.warning("Failed to get row element: " + idx + " error: " + x);
             }
             row.add(DSElement.makeNull());
@@ -171,7 +172,7 @@ public class JDBCClosedTable implements ActionTable {
                     //No next if broken :)
                     result = false;
                 }
-                return  result;
+                return result;
             }
 
             @Override

@@ -1,6 +1,6 @@
 # dslink-java-v2-jdbc
 
-* Version: 1.0.0.0
+* Version: 1.2.0.0
 * Java - version 1.7 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -37,31 +37,34 @@ descriptions of actions, values and child nodes.
 This is the root node of the link.  It has actions for connecting to new databases.
 
 **Actions**
-- Add DB - Adds a new database
+- Connect - Connects to an existing database (H2, mySql, postgres)
+- Create H2 - Creates a new local H2 database (connects if already exists)
 
 **Values**
 - Docs - Link to the GitHub Documentation
 
 **Child Nodes**
-- ConnectionNode - A new connection node is create for each new database.
+- ConnectionNode - A new connection node is created for each new database
 
 ### ConnectionNode
 
 Each connection node represents a new database connection.
 
 **Actions**
-- Query - Run an SQL query.
-- Edit - Edit the parameters for the database. (fields left blank are not changed)
-- Disconnect - Disconnect from database and delete the ConnectionNode.
+- Query - Run an SQL query to get data from the database
+- Update - Run an SQL query to modify the database
+- Edit - Edit the parameters for the database (fields left blank are not changed)
+- Disconnect - Disconnect from database and delete the ConnectionNode (database remains unchanged)
 
 **Values**
-- Connection Status - Displays the status of the connection.
-- DB Name - Display the name of the database node.
-- Driver - Driver used to connect to the database.
+- Connection Status - Displays the status of the connection
+- DB Name - Display the name of the database node
+- Driver - Driver used to connect to the database
 - Last Fail Con - Timestamp when connection last failed
-- Last Success Con - Timestamp when connection was last sucessful
-- URL - URL of the database.
-- User Name - User name used for this connection.
+- Last Success Con - Timestamp when connection was last successful
+- URL - URL of the database
+- User Name - User name used for this connection
+- Allow Access - (H2 only) creates a server to allow access from other clients
 
 ## Acknowledgements
 

@@ -3,7 +3,10 @@ package org.iot.dsa.dslink.java.v2.jdbc;
 import org.iot.dsa.dslink.DSRequestException;
 import org.iot.dsa.dslink.DSRootNode;
 import org.iot.dsa.node.*;
-import org.iot.dsa.node.action.*;
+import org.iot.dsa.node.action.ActionInvocation;
+import org.iot.dsa.node.action.ActionResult;
+import org.iot.dsa.node.action.ActionSpec;
+import org.iot.dsa.node.action.DSAction;
 import org.iot.dsa.security.DSPasswordAes;
 import org.iot.dsa.time.DSDateTime;
 
@@ -11,8 +14,13 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 
+/**
+ * Generic connection node designed to handle any type of database connection.
+ *
+ * @author Juris Puchin
+ * Created on 10/13/2017
+ */
 abstract public class DBConnectionNode extends DSNode {
 
     ///////////////////////////////////////////////////////////////////////////
@@ -271,10 +279,16 @@ abstract public class DBConnectionNode extends DSNode {
         if (!params.isNull(JDBCv2Helpers.DRIVER))
             put(driver, params.get(JDBCv2Helpers.DRIVER));
         if (!params.isNull(JDBCv2Helpers.DB_PASSWORD))
-            put(password, DSPasswordAes.valueOf(params.get(JDBCv2Helpers.DB_PASSWORD).toString()));
+            setCurPass(params.get(JDBCv2Helpers.DB_PASSWORD).toString());
     }
 
+    String getCurPass() {
+        return ((DSPasswordAes) password.getValue()).decode();
+    }
 
+    private void setCurPass(String pass) {
+        put(password, DSPasswordAes.valueOf(pass));
+    }
 
     void connSuccess(boolean success) {
         DSDateTime stamp = DSDateTime.valueOf(System.currentTimeMillis());
@@ -303,6 +317,8 @@ abstract public class DBConnectionNode extends DSNode {
         } finally {
             if (conn != null) {
                 JDBCv2Helpers.cleanClose(res, stmt, conn, getLogger());
+            } else {
+                connSuccess(false);
             }
         }
     }

@@ -11,6 +11,12 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * Class designed for handling connections with and arbitrary driver using C3P0 pooling.
+ *
+ * @author James (Juris) Puchin
+ * Created on 10/13/2017
+ */
 public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     private ComboPooledDataSource pool_data_source = null;
 
@@ -54,11 +60,13 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
             pool_data_source.setAcquireRetryAttempts(6);
             pool_data_source.setAcquireRetryDelay(500);
             pool_data_source.setCheckoutTimeout(3000);
+            //TODO: implement dynamic ping cycle/connections
             //pool_data_source.setTestConnectionOnCheckout(true);
             //pool_data_source.setPreferredTestQuery("SELECT 1");
 
-            //Alternative, uses standard JDBC drivers
             /*
+            //Alternative, uses standard JDBC drivers
+            //Might be useful later if implementation that does not need explicit driver passing is desired.
             DataSource ds_unpooled = DataSources.unpooledDataSource(url, name, pass);
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
@@ -71,6 +79,6 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
 
     @Override
     Connection getConnection() throws SQLException {
-            return pool_data_source.getConnection();
+        return pool_data_source.getConnection();
     }
 }
