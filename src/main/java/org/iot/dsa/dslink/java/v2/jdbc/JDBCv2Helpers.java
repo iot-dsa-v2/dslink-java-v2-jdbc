@@ -28,10 +28,12 @@ class JDBCv2Helpers {
     static final String DB_USER = "User Name";
     static final String DB_PASSWORD = "Password";
     static final String DRIVER = "Driver";
-    static final String ADD_DB = "Add DB";
+    static final String ADD_DB = "Connect";
     static final String LAST_SUCCESS = "Last Success Con";
     static final String LAST_FAIL = "Last Fail Con";
 
+    static final String EXT_ACCESS = "Allow Access";
+    static final String CREATE_DB = "Create H2";
 
     static final String DRIVER_NAME = "Driver Name";
     static final String REGISTERED = "Registered";
@@ -40,6 +42,7 @@ class JDBCv2Helpers {
     static final String REMOVE = "Disconnect";
 
     static final String QUERY = "Query";
+    static final String UPDATE = "Update";
 
     static final String EDIT = "Edit";
 

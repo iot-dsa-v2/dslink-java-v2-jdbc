@@ -42,6 +42,7 @@ public class RootNode extends DSRootNode {
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
+        declareDefault(JDBCv2Helpers.CREATE_DB, makeCreateDatabaseAction());
         declareDefault("Docs", DSString.valueOf("https://github.com/iot-dsa-v2/dslink-java-v2-jdbc")).setReadOnly(true).setTransient(true);
         //TODO: Create action to manually add a driver
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
@@ -67,7 +68,32 @@ public class RootNode extends DSRootNode {
     }
 
     private ActionResult addNewDatabase(DSMap parameters) {
-        DSNode nextDB = new DBConnectionNode(parameters);
+        DSNode nextDB = new C3P0PooledDBConnectionNode(parameters);
+        add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
+        getLink().save();
+        return null;
+    }
+
+    private DSAction makeCreateDatabaseAction() {
+        DSAction act = new DSAction() {
+            @Override
+            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+                return ((RootNode) info.getParent()).createNewDatabase(invocation.getParameters());
+            }
+        };
+        act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
+        act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
+        //TODO: add default timeout/poolable options
+        //action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
+        //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
+        return act;
+    }
+
+    private ActionResult createNewDatabase(DSMap parameters) {
+        parameters.put(JDBCv2Helpers.DRIVER, DSElement.make("org.h2.Driver"));
+        parameters.put(JDBCv2Helpers.DB_URL, DSElement.make("Not Started"));
+        DSNode nextDB = new ManagedH2DBConnectionNode(parameters);
         add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
         getLink().save();
         return null;

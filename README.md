@@ -81,6 +81,12 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
+* Version 1.2.0.0
+  - Added H2 database creation capability
+  - Added H2 database server option
+  - Added table update capability
+* Version 1.1.0.0
+  - SQL errors show up in Dataflow block
 * Version 1.0.0.0
   - Basic functionality implemented
   - Add/Remove/Edit Databases

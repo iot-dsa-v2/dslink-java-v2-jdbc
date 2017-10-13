@@ -5,6 +5,7 @@ import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -151,7 +152,10 @@ public class JDBCClosedTable implements ActionTable {
     @Override
     public Iterator<DSList> getRows() {
         try {
-            res.next();
+            if (!res.next()) {
+                //Empty result
+                return new ArrayList<DSList>().iterator();
+            }
         } catch (SQLException e) {
             log.warning("Table is empty! " + e);
         }
@@ -159,6 +163,7 @@ public class JDBCClosedTable implements ActionTable {
 
             @Override
             public boolean hasNext() {
+                //noinspection UnusedAssignment
                 boolean result = true;
                 try {
                     result = !res.isAfterLast();
