@@ -33,7 +33,7 @@ public class JDBCOpenTable implements ActionTable {
 
         ResultSetMetaData meta = res.getMetaData();
         columnCount = meta.getColumnCount();
-        cols = new LinkedList<>();
+        cols = new LinkedList<DSMap>();
         for (int i = 1; i <= columnCount; i++) {
             cols.add(makeStrColumn(meta.getColumnName(i)));
         }

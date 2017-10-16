@@ -35,7 +35,7 @@ public class JDBCClosedTable implements ActionTable {
         columnCount = meta.getColumnCount();
 
         colTypes = new ColType[columnCount + 1];
-        cols = new LinkedList<>();
+        cols = new LinkedList<DSMap>();
         for (int i = 1; i <= columnCount; i++) {
             DSValueType type = setColumnType(meta, i);
             cols.add(makeColumn(meta.getColumnName(i), type));
