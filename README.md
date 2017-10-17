@@ -1,7 +1,7 @@
 # dslink-java-v2-jdbc
 
 * Version: 1.2.1.0
-* Java - version 1.7 and up.
+* Java - version 1.6 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 ## Overview
