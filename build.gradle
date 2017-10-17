@@ -30,10 +30,6 @@ dependencies {
     //c3p0 for connection pools
     compile 'com.mchange:c3p0:+'
 
-//    compile 'org.apache.commons:commons-lang3:3.4'
-//    compile 'org.apache.commons:commons-dbcp2:2.1.1'
-//    compile 'org.apache.commons:commons-pool2:2.4.2'
-
     //JDBC Drivers
     compile 'mysql:mysql-connector-java:+'
     compile 'com.h2database:h2:+'
@@ -49,13 +45,5 @@ build {
     def inputFile = file("dslink.json")
     def json = new JsonSlurper().parseText(inputFile.text)
     version = json.version
-}
-
-run {
-//    if (project.hasProperty("appArgs")) {
-//        args Eval.me(appArgs)
-//    }
-//    args System.getProperty("exec.args", "").split()
-    //workingDir project.buildDir
 }
 
