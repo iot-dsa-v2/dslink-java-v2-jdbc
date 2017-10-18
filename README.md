@@ -1,6 +1,6 @@
 # dslink-java-v2-jdbc
 
-* Version: 1.2.1.0
+* Version: 1.3.0
 * Java - version 1.6 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -92,17 +92,15 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
-* Version 1.2.1.0
+* Version 1.3.0
   - Added simple table management for H2 database
-* Version 1.2.0.0
+* Version 1.2.0
   - Added H2 database creation capability
   - Added H2 database server option
   - Added table update capability
-* Version 1.1.0.0
+* Version 1.1.0
   - SQL errors show up in Dataflow block
-* Version 1.0.0.0
+* Version 1.0.0
   - Basic functionality implemented
   - Add/Remove/Edit Databases
   - Run Queries
-* Version 0.0.0.0
-  - Initial Development
