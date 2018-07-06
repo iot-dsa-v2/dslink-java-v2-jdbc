@@ -1,49 +1,46 @@
+import groovy.json.JsonSlurper
+
 apply plugin: 'java'
 apply plugin: 'application'
-import groovy.json.JsonSlurper
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
 
-group 'org.iot.dsa'
-
+group 'org.iot-dsa'
 mainClassName = 'org.iot.dsa.dslink.DSLink'
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
+build {
+    def inputFile = file('dslink.json')
+    def json = new JsonSlurper().parseText(inputFile.text)
+    version = json.version
 }
 
 repositories {
     mavenCentral()
     jcenter()
     maven {
-        url 'https://oss.sonatype.org/content/repositories/snapshots/'
+        url 'https://jitpack.io'
     }
-    flatDir { dirs 'dsa_lib' }
 }
 
 dependencies {
     //Java DSLink SDK
-    compile 'org.iot.dsa:dslink-core:+'
-    compile 'org.iot.dsa:dslink-websocket-standalone:+'
-    compile 'org.glassfish.tyrus.bundles:tyrus-standalone-client:+'
+    implementation 'com.github.iot-dsa-v2:sdk-dslink-java-v2:+'
     //c3p0 for connection pools
-    compile 'com.mchange:c3p0:+'
-
+    implementation 'com.mchange:c3p0:+'
     //JDBC Drivers
-    compile 'mysql:mysql-connector-java:+'
-    compile 'com.h2database:h2:+'
-    compile 'org.postgresql:postgresql:+'
-
-    testCompile 'junit:junit:+'
+    implementation 'mysql:mysql-connector-java:+'
+    implementation 'com.h2database:h2:+'
+    implementation 'org.postgresql:postgresql:+'
 }
 
 applicationDistribution.from(new File(project.projectDir, "/dslink.json"))
 
-build {
-    //Gets version from dslink.json file
-    def inputFile = file("dslink.json")
-    def json = new JsonSlurper().parseText(inputFile.text)
-    version = json.version
+run {
+    args System.getProperty("exec.args", "").split()
+    workingDir project.buildDir
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.8.1'
+}

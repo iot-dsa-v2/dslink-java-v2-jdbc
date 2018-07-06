@@ -1,15 +1,14 @@
-package org.iot.dsa.dslink.java.v2.jdbc;
+package org.iot.dsa.dslink.jdbc;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.beans.PropertyVetoException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.DSAction;
-import org.iot.dsa.security.DSPasswordAes;
-
-import java.beans.PropertyVetoException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import org.iot.dsa.security.DSPasswordAes128;
 
 /**
  * Class designed for handling connections with and arbitrary driver using C3P0 pooling.
@@ -18,6 +17,7 @@ import java.sql.SQLException;
  * Created on 10/13/2017
  */
 public class C3P0PooledDBConnectionNode extends DBConnectionNode {
+
     private ComboPooledDataSource pool_data_source = null;
 
     public C3P0PooledDBConnectionNode() {
@@ -26,15 +26,6 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
 
     C3P0PooledDBConnectionNode(DSMap params) {
         super(params);
-    }
-
-    @Override
-    DSAction makeEditAction() {
-        DSAction act = super.makeEditAction();
-        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
-        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null).setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
-        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
-        return act;
     }
 
     @Override
@@ -49,7 +40,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
         try {
             String url = db_url.getValue().toString();
             String name = usr_name.getValue().toString();
-            String pass = ((DSPasswordAes) password.getValue()).decode();
+            String pass = ((DSPasswordAes128) password.getValue()).decode();
             String drvr = driver.getValue().toString();
 
             pool_data_source = new ComboPooledDataSource();
@@ -80,5 +71,15 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     @Override
     Connection getConnection() throws SQLException {
         return pool_data_source.getConnection();
+    }
+
+    @Override
+    DSAction makeEditAction() {
+        DSAction act = super.makeEditAction();
+        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
+        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null)
+           .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
+        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
+        return act;
     }
 }

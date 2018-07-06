@@ -1,12 +1,4 @@
-package org.iot.dsa.dslink.java.v2.jdbc;
-
-import org.iot.dsa.node.DSList;
-import org.iot.dsa.node.DSMap;
-import org.iot.dsa.node.DSMetadata;
-import org.iot.dsa.node.DSValueType;
-import org.iot.dsa.node.action.ActionInvocation;
-import org.iot.dsa.node.action.ActionSpec;
-import org.iot.dsa.node.action.ActionTable;
+package org.iot.dsa.dslink.jdbc;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -15,6 +7,13 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.iot.dsa.node.DSList;
+import org.iot.dsa.node.DSMap;
+import org.iot.dsa.node.DSMetadata;
+import org.iot.dsa.node.DSValueType;
+import org.iot.dsa.node.action.ActionInvocation;
+import org.iot.dsa.node.action.ActionSpec;
+import org.iot.dsa.node.action.ActionTable;
 
 /**
  * Class for handling streaming tables. Currently not used.
@@ -39,8 +38,9 @@ public class JDBCOpenTable implements ActionTable {
         }
     }
 
-    private static DSMap makeStrColumn(String name) {
-        return new DSMetadata().setName(name).setType(DSValueType.STRING).getMap();
+    @Override
+    public ActionSpec getAction() {
+        return act;
     }
 
     @Override
@@ -51,6 +51,11 @@ public class JDBCOpenTable implements ActionTable {
     @Override
     public Iterator<DSList> getRows() {
         return new LinkedList<DSList>().iterator();
+    }
+
+    @Override
+    public void onClose() {
+
     }
 
     public void sendRows(ResultSet res, ActionInvocation invoc) throws SQLException {
@@ -68,13 +73,7 @@ public class JDBCOpenTable implements ActionTable {
         }
     }
 
-    @Override
-    public ActionSpec getAction() {
-        return act;
-    }
-
-    @Override
-    public void onClose() {
-
+    private static DSMap makeStrColumn(String name) {
+        return new DSMetadata().setName(name).setType(DSValueType.STRING).getMap();
     }
 }
