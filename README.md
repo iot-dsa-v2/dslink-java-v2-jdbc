@@ -22,7 +22,7 @@ This link was built using the Java DSLink SDK which can be found
 
 This section outlines the hierarchy of nodes defined by this link.
 
-- _RootNode_ - Used to add new database connections.
+- _MainNode_ - Used to add new database connections.
   - _ConnectionNode_ - Used to run SQL queries and Disconnect databases.
 
 
@@ -32,7 +32,7 @@ The following section provides detailed descriptions of each node in the link as
 descriptions of actions, values and child nodes.
 
 
-### RootNode
+### MainNode
 
 This is the root node of the link.  It has actions for connecting to new databases.
 
@@ -92,6 +92,8 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
+* Version 1.3.1
+  - Update dependencies and fix breaking sdk changes
 * Version 1.3.0
   - Added simple table management for H2 database
 * Version 1.2.0

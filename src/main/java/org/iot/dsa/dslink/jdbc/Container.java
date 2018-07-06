@@ -1,4 +1,4 @@
-package org.iot.dsa.dslink.java.v2.jdbc;
+package org.iot.dsa.dslink.jdbc;
 
 /**
  * Provides an easy way to set variables from an inner class to an
@@ -27,16 +27,16 @@ public class Container<T> {
     }
 
     /**
-     * @param value Value to set.
-     */
-    public void setValue(T value) {
-        this.value = value;
-    }
-
-    /**
      * @return Value of the {@link Container}.
      */
     public T getValue() {
         return value;
+    }
+
+    /**
+     * @param value Value to set.
+     */
+    public void setValue(T value) {
+        this.value = value;
     }
 }

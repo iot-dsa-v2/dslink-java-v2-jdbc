@@ -1,78 +1,18 @@
 {
   "name": "JDBCv2",
-  "version": "1.3.0",
+  "version": "1.3.1",
+  "dsa-version": "2.0",
   "description": "Database link for JDBC style databases",
   "main": "bin/dslink-java-v2-jdbc",
   "configs": {
-    "rootType": {
-      "desc": "Fully qualified class name of the root node of the link.",
+    "handler_class": {
       "type": "string",
-      "value": "org.iot.dsa.dslink.java.v2.jdbc.RootNode"
-    },
-    "broker": {
-      "desc": "URL to broker.",
-      "type": "url",
-      "value": null
-    },
-    "connectionType": {
-      "desc": "Can be specified to override the default connection type.",
-      "type": "string",
-      "value": null
-    },
-    "isRequester": {
-      "desc": "Whether or not the link is a requester.",
-      "type": "boolean",
-      "value": false
-    },
-    "isResponder": {
-      "desc": "Whether or not the link is a responder.",
-      "type": "boolean",
-      "value": true
-    },
-    "key": {
-      "desc": "Path to public/private key pair.",
-      "type": "path",
-      "value": ".key"
+      "value": "org.iot.dsa.dslink.jdbc.MainNode"
     },
     "log": {
       "desc": "debug, info, warn, error, none",
       "type": "enum",
       "value": "info"
-    },
-    "logFile": {
-      "desc": "Path to the log file.",
-      "type": "path",
-      "value": null
-    },
-    "nodes": {
-      "desc": "Path to configuration database.",
-      "type": "path",
-      "value": null
-    },
-    "readTimeout": {
-      "desc": "Millis timeout for reading from the connection.",
-      "type": "number",
-      "value": 60000
-    },
-    "saveInterval": {
-      "desc": "How often to backup the node database in minutes.",
-      "type": "number",
-      "value": 60
-    },
-    "stableDelay": {
-      "desc": "Millis after the node tree is started before calling stable.",
-      "type": "number",
-      "value": 5000
-    },
-    "token": {
-      "desc": "Authentication token for the broker.",
-      "type": "string",
-      "value": null
-    },
-    "transportFactory": {
-      "desc": "Can be specified to override the default standalone transport.",
-      "type": "string",
-      "value": null
     }
   }
 }

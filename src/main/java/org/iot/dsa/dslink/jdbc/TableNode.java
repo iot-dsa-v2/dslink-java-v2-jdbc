@@ -1,4 +1,4 @@
-package org.iot.dsa.dslink.java.v2.jdbc;
+package org.iot.dsa.dslink.jdbc;
 
 import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSNode;
@@ -14,6 +14,7 @@ import org.iot.dsa.node.action.DSAction;
  * Created on 10/13/2017
  */
 public class TableNode extends DSNode {
+
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
