@@ -24,11 +24,8 @@ repositories {
 }
 
 dependencies {
-    //Java DSLink SDK
     implementation 'com.github.iot-dsa-v2:sdk-dslink-java-v2:+'
-    //c3p0 for connection pools
     implementation 'com.mchange:c3p0:+'
-    //JDBC Drivers
     implementation 'mysql:mysql-connector-java:+'
     implementation 'com.h2database:h2:+'
     implementation 'org.postgresql:postgresql:+'
