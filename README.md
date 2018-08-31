@@ -1,6 +1,6 @@
 # dslink-java-v2-jdbc
 
-* Version: 1.3.0
+* Version: 1.3.2
 * Java - version 1.6 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
@@ -92,6 +92,9 @@ at https://github.com/iot-dsa-v2/sdk-dslink-java/blob/master/LICENSE
 
 ## History
 
+* Version 1.3.2
+  - Update gradle.
+  - Fixes for latest sdk.
 * Version 1.3.1
   - Update dependencies and fix breaking sdk changes
 * Version 1.3.0

@@ -39,7 +39,6 @@ public class MainNode extends DSMainNode {
     private ActionResult addNewDatabase(DSMap parameters) {
         DSNode nextDB = new C3P0PooledDBConnectionNode(parameters);
         add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
-        getLink().save();
         return null;
     }
 
@@ -54,7 +53,6 @@ public class MainNode extends DSMainNode {
         parameters.put(JDBCv2Helpers.DB_URL, DSElement.make("Not Started"));
         DSNode nextDB = new ManagedH2DBConnectionNode(parameters);
         add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
-        getLink().save();
         return null;
     }
 
