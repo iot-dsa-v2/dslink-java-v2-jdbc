@@ -132,7 +132,6 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
         setParameters(parameters);
         testConnection();
         DSMainNode par = (DSMainNode) getParent();
-        par.getLink().save();
         return null;
     }
 

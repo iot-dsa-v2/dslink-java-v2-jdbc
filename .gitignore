@@ -1,22 +1,20 @@
 # Tooling
 **.classpath
 **.idea
+**.iml
 **.metadata
 **.project
 **.settings
 **eclipseBin
 
 # Build artifacts
+.gradle
 **.class
-**.iml
 **build
 **classes
 **libJar
 **out
 **target
-**/.gradle
-**javadoc
-**repository
 
 # Misc
 **.bak
