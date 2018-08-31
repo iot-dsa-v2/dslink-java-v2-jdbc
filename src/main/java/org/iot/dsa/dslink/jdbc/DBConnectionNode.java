@@ -104,7 +104,6 @@ abstract public class DBConnectionNode extends DSNode {
         closeConnections();
         createDatabaseConnection();
         DSMainNode par = (DSMainNode) getParent();
-        par.getLink().save();
         testConnection();
         return null;
     }
