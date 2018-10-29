@@ -126,7 +126,6 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
             }
         } catch (SQLException e) {
             warn("Failed to get connection.", e);
-            //connSuccess(false);
             connDown(e.getMessage());
         } finally {
             JDBCv2Helpers.cleanClose(null, chg_pass, data, this);

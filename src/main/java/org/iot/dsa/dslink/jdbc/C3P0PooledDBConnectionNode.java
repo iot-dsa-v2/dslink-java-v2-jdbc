@@ -65,7 +65,6 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
         } catch (PropertyVetoException e) {
-//            connSuccess(false);
             connDown(e.getMessage());
             warn("Failed to connect to Database: " + db_name.getValue() + " Message: " + e);
         }

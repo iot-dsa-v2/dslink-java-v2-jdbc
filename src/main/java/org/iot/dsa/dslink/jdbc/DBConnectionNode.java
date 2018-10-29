@@ -35,9 +35,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
     final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
     final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
-//    private final DSInfo conn_status = getInfo(JDBCv2Helpers.STATUS);
-    private final DSInfo conn_succ = getInfo(JDBCv2Helpers.LAST_SUCCESS);
-    private final DSInfo conn_fail = getInfo(JDBCv2Helpers.LAST_FAIL);
     private final DSInfo enabled = getInfo(JDBCv2Helpers.ENABLED);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -73,10 +70,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         declareDefault(JDBCv2Helpers.DRIVER, DSString.valueOf("No Driver"));
         declareDefault(JDBCv2Helpers.DB_PASSWORD, DSPasswordAes128.valueOf("No Pass"))
                 .setHidden(true);
-//        declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown))
-//                .setReadOnly(true);
-        declareDefault(JDBCv2Helpers.LAST_SUCCESS, DSString.valueOf("None")).setReadOnly(true);
-        declareDefault(JDBCv2Helpers.LAST_FAIL, DSString.valueOf("None")).setReadOnly(true);
         //Default Actions
         declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
         declareDefault(JDBCv2Helpers.EDIT, makeEditAction());
@@ -100,19 +93,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     abstract void closeConnections();
-
-//    void connSuccess(boolean success) {
-//        DSDateTime stamp = DSDateTime.valueOf(System.currentTimeMillis());
-//        if (success) {
-//            put(conn_status, DSString.valueOf(ConnStates.Connected));
-//            put(conn_succ, stamp);
-//            connOk();
-//        } else {
-//            put(conn_status, DSString.valueOf(ConnStates.Failed));
-//            put(conn_fail, stamp);
-//            connDown("");
-//        }
-//    }
 
     abstract void createDatabaseConnection();
 
@@ -191,17 +171,14 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         try {
             conn = getConnection();
             stmt = conn.createStatement();
-//            connSuccess(true);
             connOk();
             try {
                 rSet = stmt.executeQuery(sqlQuery);
             } catch (SQLException e) {
-//                put(conn_status, DSString.valueOf(ConnStates.Unknown));
                 JDBCv2Helpers.cleanClose(null, stmt, conn, this);
                 throw new DSRequestException("Query failed: " + e);
             }
         } catch (SQLException e) {
-//            connSuccess(false);
             connDown(e.getMessage());
             //noinspection ConstantConditions
             JDBCv2Helpers.cleanClose(rSet, stmt, conn, this);
@@ -279,7 +256,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         try {
             res = new JDBCClosedTable(act, rSet, this);
         } catch (SQLException e) {
-//            put(conn_status, DSString.valueOf(ConnStates.Unknown));
             JDBCv2Helpers.cleanClose(rSet, null, null, this);
             throw new DSRequestException("Failed to retrieve data from database: " + e);
         }
@@ -293,17 +269,14 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         try {
             conn = getConnection();
             stmt = conn.createStatement();
-//            connSuccess(true);
             connOk();
             try {
                 stmt.executeUpdate(query);
             } catch (SQLException e) {
-//                put(conn_status, DSString.valueOf(ConnStates.Unknown));
                 JDBCv2Helpers.cleanClose(null, stmt, conn, this);
                 throw new DSRequestException("Update failed: " + e);
             }
         } catch (SQLException e) {
-//            connSuccess(false);
             connDown(e.getMessage());
             //noinspection ConstantConditions
             JDBCv2Helpers.cleanClose(null, stmt, conn, this);
@@ -344,25 +317,16 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             stmt = conn.createStatement();
             //noinspection SqlNoDataSourceInspection
             res = stmt.executeQuery("SELECT 1");
-//            connSuccess(true);
             connOk();
         } catch (SQLException e) {
-//            connSuccess(false);
             connDown(e.getMessage());
             warn("Failed to connect to Database: " + db_name.getValue(), e);
         } finally {
             if (conn != null) {
                 JDBCv2Helpers.cleanClose(res, stmt, conn, this);
             } else {
-//                connSuccess(false);
                 connDown("Conn is null");
             }
         }
     }
-
-//    public enum ConnStates {
-//        Connected,
-//        Failed,
-//        Unknown
-//    }
 }
