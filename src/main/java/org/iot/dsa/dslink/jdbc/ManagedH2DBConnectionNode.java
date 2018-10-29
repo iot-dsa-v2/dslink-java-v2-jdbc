@@ -77,6 +77,9 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
 
     @Override
     void createDatabaseConnection() {
+        if (!canConnect()) {
+            return;
+        }
         if (extrnl.getValue().toElement().toBoolean()) {
             startTCPServer();
         }
@@ -123,7 +126,8 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
             }
         } catch (SQLException e) {
             warn("Failed to get connection.", e);
-            connSuccess(false);
+            //connSuccess(false);
+            connDown(e.getMessage());
         } finally {
             JDBCv2Helpers.cleanClose(null, chg_pass, data, this);
             JDBCv2Helpers.cleanClose(null, chg_usr, data, this);
@@ -204,5 +208,16 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
 
     private void updateServerURL() {
         put(db_url, DSElement.make(getServerURL()));
+    }
+
+    @Override
+    protected void checkConfig() {
+        if (usr_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty username");
+        }
+        if (db_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty db name");
+        }
+        configOk();
     }
 }

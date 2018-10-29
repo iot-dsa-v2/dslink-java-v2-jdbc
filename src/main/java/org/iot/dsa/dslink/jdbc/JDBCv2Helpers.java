@@ -45,6 +45,7 @@ class JDBCv2Helpers {
     static final String INTERVAL = "Query Interval";
     static final String STREAM_QUERY = "Streaming Query";
     static final String STATUS = "Connection Status";
+    static final String ENABLED = "Enabled";
 
     private static DSList cashedDriversNames;
 
