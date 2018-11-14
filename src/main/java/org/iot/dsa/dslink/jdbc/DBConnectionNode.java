@@ -4,11 +4,12 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.iot.dsa.conn.DSBaseConnection;
 import org.iot.dsa.dslink.DSMainNode;
 import org.iot.dsa.dslink.DSRequestException;
+import org.iot.dsa.node.DSBool;
 import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSMap;
-import org.iot.dsa.node.DSNode;
 import org.iot.dsa.node.DSString;
 import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.ActionInvocation;
@@ -16,7 +17,6 @@ import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
 import org.iot.dsa.security.DSPasswordAes128;
-import org.iot.dsa.time.DSDateTime;
 
 /**
  * Generic connection node designed to handle any type of database connection.
@@ -24,7 +24,7 @@ import org.iot.dsa.time.DSDateTime;
  * @author Juris Puchin
  * Created on 10/13/2017
  */
-abstract public class DBConnectionNode extends DSNode {
+abstract public class DBConnectionNode extends DSBaseConnection {
 
     ///////////////////////////////////////////////////////////////////////////
     // Fields
@@ -35,9 +35,7 @@ abstract public class DBConnectionNode extends DSNode {
     final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
     final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
     final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
-    private final DSInfo conn_status = getInfo(JDBCv2Helpers.STATUS);
-    private final DSInfo conn_succ = getInfo(JDBCv2Helpers.LAST_SUCCESS);
-    private final DSInfo conn_fail = getInfo(JDBCv2Helpers.LAST_FAIL);
+    private final DSInfo enabled = getInfo(JDBCv2Helpers.ENABLED);
 
     ///////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -55,21 +53,23 @@ abstract public class DBConnectionNode extends DSNode {
     ///////////////////////////////////////////////////////////////////////////
     // Methods
     ///////////////////////////////////////////////////////////////////////////
+    
+    @Override
+    public boolean isEnabled() {
+        return enabled.getElement().toBoolean();
+    }
 
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
         //Default Values
+        declareDefault(JDBCv2Helpers.ENABLED, DSBool.TRUE);
         declareDefault(JDBCv2Helpers.DB_NAME, DSString.valueOf("No Name"));
         declareDefault(JDBCv2Helpers.DB_USER, DSString.valueOf("No Name"));
         declareDefault(JDBCv2Helpers.DB_URL, DSString.valueOf("No URL"));
         declareDefault(JDBCv2Helpers.DRIVER, DSString.valueOf("No Driver"));
         declareDefault(JDBCv2Helpers.DB_PASSWORD, DSPasswordAes128.valueOf("No Pass"))
                 .setHidden(true);
-        declareDefault(JDBCv2Helpers.STATUS, DSString.valueOf(ConnStates.Unknown))
-                .setReadOnly(true);
-        declareDefault(JDBCv2Helpers.LAST_SUCCESS, DSString.valueOf("None")).setReadOnly(true);
-        declareDefault(JDBCv2Helpers.LAST_FAIL, DSString.valueOf("None")).setReadOnly(true);
         //Default Actions
         declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
         declareDefault(JDBCv2Helpers.EDIT, makeEditAction());
@@ -78,6 +78,14 @@ abstract public class DBConnectionNode extends DSNode {
         //declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
         declareDefault(JDBCv2Helpers.REMOVE, makeRemoveDatabaseAction());
     }
+    
+    @Override
+    protected void onChildChanged(DSInfo child) {
+        if (child == enabled) {
+            canConnect(); //update disabled status
+        }
+        super.onChildChanged(child);
+    }
 
     @Override
     protected void onStable() {
@@ -85,17 +93,6 @@ abstract public class DBConnectionNode extends DSNode {
     }
 
     abstract void closeConnections();
-
-    void connSuccess(boolean success) {
-        DSDateTime stamp = DSDateTime.valueOf(System.currentTimeMillis());
-        if (success) {
-            put(conn_status, DSString.valueOf(ConnStates.Connected));
-            put(conn_succ, stamp);
-        } else {
-            put(conn_status, DSString.valueOf(ConnStates.Failed));
-            put(conn_fail, stamp);
-        }
-    }
 
     abstract void createDatabaseConnection();
 
@@ -174,16 +171,15 @@ abstract public class DBConnectionNode extends DSNode {
         try {
             conn = getConnection();
             stmt = conn.createStatement();
-            connSuccess(true);
+            connOk();
             try {
                 rSet = stmt.executeQuery(sqlQuery);
             } catch (SQLException e) {
-                put(conn_status, DSString.valueOf(ConnStates.Unknown));
                 JDBCv2Helpers.cleanClose(null, stmt, conn, this);
                 throw new DSRequestException("Query failed: " + e);
             }
         } catch (SQLException e) {
-            connSuccess(false);
+            connDown(e.getMessage());
             //noinspection ConstantConditions
             JDBCv2Helpers.cleanClose(rSet, stmt, conn, this);
             warn("Failed to connect to Database: " + db_name.getValue(), e);
@@ -260,7 +256,6 @@ abstract public class DBConnectionNode extends DSNode {
         try {
             res = new JDBCClosedTable(act, rSet, this);
         } catch (SQLException e) {
-            put(conn_status, DSString.valueOf(ConnStates.Unknown));
             JDBCv2Helpers.cleanClose(rSet, null, null, this);
             throw new DSRequestException("Failed to retrieve data from database: " + e);
         }
@@ -274,16 +269,15 @@ abstract public class DBConnectionNode extends DSNode {
         try {
             conn = getConnection();
             stmt = conn.createStatement();
-            connSuccess(true);
+            connOk();
             try {
                 stmt.executeUpdate(query);
             } catch (SQLException e) {
-                put(conn_status, DSString.valueOf(ConnStates.Unknown));
                 JDBCv2Helpers.cleanClose(null, stmt, conn, this);
                 throw new DSRequestException("Update failed: " + e);
             }
         } catch (SQLException e) {
-            connSuccess(false);
+            connDown(e.getMessage());
             //noinspection ConstantConditions
             JDBCv2Helpers.cleanClose(null, stmt, conn, this);
             warn("Failed to connect to Database: " + db_name.getValue(), e);
@@ -323,22 +317,16 @@ abstract public class DBConnectionNode extends DSNode {
             stmt = conn.createStatement();
             //noinspection SqlNoDataSourceInspection
             res = stmt.executeQuery("SELECT 1");
-            connSuccess(true);
+            connOk();
         } catch (SQLException e) {
-            connSuccess(false);
+            connDown(e.getMessage());
             warn("Failed to connect to Database: " + db_name.getValue(), e);
         } finally {
             if (conn != null) {
                 JDBCv2Helpers.cleanClose(res, stmt, conn, this);
             } else {
-                connSuccess(false);
+                connDown("Conn is null");
             }
         }
-    }
-
-    public enum ConnStates {
-        Connected,
-        Failed,
-        Unknown
     }
 }

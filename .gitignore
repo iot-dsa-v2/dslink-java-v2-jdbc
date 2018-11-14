@@ -30,3 +30,4 @@
 **nodes*.zip
 **test.json
 **/*.log.*.zip
+/bin/
