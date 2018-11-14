@@ -160,11 +160,11 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
     }
 
     private DSAction makeShowTablesAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
                 invocation.getParameters().put(JDBCv2Helpers.QUERY, "SHOW TABLES");
-                DBConnectionNode par = (DBConnectionNode) info.getParent();
+                DBConnectionNode par = (DBConnectionNode) target.get();
                 ResultSet res = par.executeQuery("SHOW TABLES");
                 if (invocation.getParameters().get(JDBCv2Helpers.MAKE_NODES).toBoolean()) {
                     try {
@@ -178,7 +178,7 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
                         warn("Failed to read table list: ", e);
                     }
                 }
-                return ((DBConnectionNode) info.getParent())
+                return ((DBConnectionNode) target.get())
                         .runQuery(invocation.getParameters(), this);
             }
         };

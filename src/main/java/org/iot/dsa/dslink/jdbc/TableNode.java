@@ -22,12 +22,12 @@ public class TableNode extends DSNode {
     }
 
     private DSAction makeShowTableAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                String tableName = info.getParent().getName();
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                String tableName = target.getNode().getName();
                 invocation.getParameters().put(JDBCv2Helpers.QUERY, "SELECT * FROM " + tableName);
-                DBConnectionNode connNode = (DBConnectionNode) info.getParent().getParent();
+                DBConnectionNode connNode = (DBConnectionNode) target.getNode().getParent();
                 return connNode.runQuery(invocation.getParameters(), this);
             }
         };
