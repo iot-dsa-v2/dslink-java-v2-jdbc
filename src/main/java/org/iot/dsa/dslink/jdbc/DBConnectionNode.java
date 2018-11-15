@@ -195,10 +195,10 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     DSAction makeEditAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((DBConnectionNode) info.getParent()).edit(invocation.getParameters());
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((DBConnectionNode) target.get()).edit(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
@@ -211,10 +211,10 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     private DSAction makeQueryAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((DBConnectionNode) info.getParent())
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((DBConnectionNode) target.get())
                         .runQuery(invocation.getParameters(), this);
             }
         };
@@ -224,20 +224,20 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     private DSAction makeRemoveDatabaseAction() {
-        return new DSAction() {
+        return new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                ((DBConnectionNode) info.getParent()).removeDatabase();
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                ((DBConnectionNode) target.get()).removeDatabase();
                 return null;
             }
         };
     }
 
     private DSAction makeUpdateAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((DBConnectionNode) info.getParent()).runUpdate(invocation.getParameters());
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((DBConnectionNode) target.get()).runUpdate(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);

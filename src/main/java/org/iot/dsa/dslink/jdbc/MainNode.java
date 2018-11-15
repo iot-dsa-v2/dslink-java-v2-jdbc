@@ -57,10 +57,10 @@ public class MainNode extends DSMainNode {
     }
 
     private DSAction makeAddDatabaseAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((MainNode) info.getParent()).addNewDatabase(invocation.getParameters());
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((MainNode) target.get()).addNewDatabase(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
@@ -78,10 +78,10 @@ public class MainNode extends DSMainNode {
 
     private DSAction makeAddDriverAction() {
         //TODO: Implement the addition of user-defined drivers
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((MainNode) info.getParent()).addNewDriver(invocation.getParameters());
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((MainNode) target.get()).addNewDriver(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DRIVER_NAME, DSValueType.STRING, null);
@@ -91,10 +91,10 @@ public class MainNode extends DSMainNode {
     }
 
     private DSAction makeCreateDatabaseAction() {
-        DSAction act = new DSAction() {
+        DSAction act = new DSAction.Parameterless() {
             @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((MainNode) info.getParent()).createNewDatabase(invocation.getParameters());
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                return ((MainNode) target.get()).createNewDatabase(invocation.getParameters());
             }
         };
         act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
