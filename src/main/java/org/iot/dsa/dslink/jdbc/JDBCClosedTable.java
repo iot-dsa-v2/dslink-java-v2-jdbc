@@ -6,18 +6,21 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import org.iot.dsa.node.DSElement;
-import org.iot.dsa.node.DSList;
+import org.iot.dsa.node.DSBool;
+import org.iot.dsa.node.DSDouble;
+import org.iot.dsa.node.DSIValue;
+import org.iot.dsa.node.DSLong;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSMetadata;
 import org.iot.dsa.node.DSNode;
+import org.iot.dsa.node.DSNull;
+import org.iot.dsa.node.DSString;
 import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.ActionTable;
+import org.iot.dsa.util.DSException;
 
 /**
  * Class designed to handle tables for non-streaming queries.
@@ -38,10 +41,8 @@ public class JDBCClosedTable implements ActionTable {
         this.act = act;
         this.res = res;
         this.node = node;
-
         ResultSetMetaData meta = res.getMetaData();
         columnCount = meta.getColumnCount();
-
         colTypes = new ColType[columnCount + 1];
         cols = new LinkedList<DSMap>();
         for (int i = 1; i <= columnCount; i++) {
@@ -56,56 +57,60 @@ public class JDBCClosedTable implements ActionTable {
     }
 
     @Override
-    public Iterator<DSMap> getColumns() {
-        return cols.iterator();
+    public int getColumnCount() {
+        return cols.size();
     }
 
     @Override
-    public Iterator<DSList> getRows() {
+    public void getMetadata(int col, DSMap bucket) {
+        bucket.putAll(cols.get(col));
+    }
+
+    @Override
+    public DSIValue getValue(int col) {
         try {
-            if (!res.next()) {
-                //Empty result
-                return new ArrayList<DSList>().iterator();
-            }
-        } catch (SQLException e) {
-            node.warn("Table is empty! " + e);
-        }
-        return new Iterator<DSList>() {
-
-            @Override
-            public boolean hasNext() {
-                //noinspection UnusedAssignment
-                boolean result = true;
-                try {
-                    result = !res.isAfterLast();
-                } catch (SQLException e) {
-                    //No next if broken :)
-                    result = false;
-                }
-                return result;
-            }
-
-            @Override
-            public DSList next() {
-                DSList row = null;
-                try {
-                    if (res.isBeforeFirst()) {
-                        res.next();
+            switch (colTypes[col]) {
+                case TYPE_BOOLEAN:
+                    return DSBool.valueOf(res.getBoolean(col));
+                case TYPE_DATE:
+                    java.sql.Timestamp d = res.getTimestamp(col);
+                    if (d == null) {
+                        return DSNull.NULL;
                     }
-                    row = getCurrentRow();
-                    res.next();
-                } catch (SQLException e) {
-                    node.warn("Failed to fetch next row: " + e);
-                }
-                return row;
+                    return org.iot.dsa.time.DSDateTime.valueOf(d.getTime());
+                case TYPE_TIME:
+                    java.sql.Time t = res.getTime(col);
+                    if (t == null) {
+                        return DSNull.NULL;
+                    }
+                    return org.iot.dsa.time.DSDateTime.valueOf(t.getTime());
+                case TYPE_DOUBLE:
+                    return DSDouble.valueOf(res.getDouble(col));
+                case TYPE_LONG:
+                    return DSLong.valueOf(res.getLong(col));
+                case TYPE_NULL:
+                case TYPE_IGNORE:
+                    return DSNull.NULL;
             }
+            String str = res.getString(col);
+            if (str == null) {
+                return DSNull.NULL;
+            }
+            return DSString.valueOf(str);
+        } catch (Exception x) {
+            DSException.throwRuntime(x);
+        }
+        return DSNull.NULL;
+    }
 
-            @Override
-            public void remove() {
-                //Does nothing
-                throw new UnsupportedOperationException();
-            }
-        };
+    @Override
+    public boolean next() {
+        try {
+            return res.next();
+        } catch (SQLException x) {
+            DSException.throwRuntime(x);
+        }
+        return false;
     }
 
     @Override
@@ -121,56 +126,6 @@ public class JDBCClosedTable implements ActionTable {
         JDBCv2Helpers.cleanClose(res, stmt, conn, node);
     }
 
-    private DSList getCurrentRow() throws SQLException {
-        DSList row = new DSList();
-        for (int idx = 1; idx <= columnCount; idx++) {
-            try {
-                switch (colTypes[idx]) {
-                    case TYPE_BOOLEAN:
-                        row.add(res.getBoolean(idx));
-                        continue;
-                    case TYPE_DATE:
-                        java.sql.Timestamp d = res.getTimestamp(idx);
-                        if (d == null) {
-                            row.add(DSElement.makeNull());
-                        } else {
-                            row.add(org.iot.dsa.time.DSDateTime.valueOf(d.getTime()).toString());
-                        }
-                        continue;
-                    case TYPE_TIME:
-                        java.sql.Time t = res.getTime(idx);
-                        if (t == null) {
-                            row.add(DSElement.makeNull());
-                        } else {
-                            row.add(t.toString());
-                        }
-                        continue;
-                    case TYPE_DOUBLE:
-                        row.add(res.getDouble(idx));
-                        continue;
-                    case TYPE_LONG:
-                        row.add(res.getLong(idx));
-                        continue;
-                    case TYPE_NULL:
-                    case TYPE_IGNORE:
-                        row.add(DSElement.makeNull());
-                        continue;
-                }
-                String str = res.getString(idx);
-                if (str == null) {
-                    row.add(DSElement.makeNull());
-                } else {
-                    row.add(str);
-                }
-                continue;
-            } catch (Exception x) {
-                node.warn("Failed to get row element: " + idx + " error: " + x);
-            }
-            row.add(DSElement.makeNull());
-        }
-        return row;
-    }
-
     private static DSMap makeColumn(String name, DSValueType type) {
         return new DSMetadata().setName(name).setType(type).getMap();
     }
@@ -178,7 +133,6 @@ public class JDBCClosedTable implements ActionTable {
     private DSValueType setColumnType(ResultSetMetaData meta, int idx) {
         DSValueType ret = DSValueType.STRING;
         colTypes[idx] = ColType.TYPE_STRING;
-
         try {
             switch (meta.getColumnType(idx)) {
                 //null

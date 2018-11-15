@@ -3,10 +3,10 @@ package org.iot.dsa.dslink.jdbc;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import org.iot.dsa.node.DSIValue;
 import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSMetadata;
@@ -44,18 +44,27 @@ public class JDBCOpenTable implements ActionTable {
     }
 
     @Override
-    public Iterator<DSMap> getColumns() {
-        return cols.iterator();
+    public int getColumnCount() {
+        return cols.size();
     }
 
     @Override
-    public Iterator<DSList> getRows() {
-        return new LinkedList<DSList>().iterator();
+    public void getMetadata(int col, DSMap bucket) {
+        bucket.putAll(cols.get(col));
+    }
+
+    @Override
+    public DSIValue getValue(int col) {
+        return null;
+    }
+
+    @Override
+    public boolean next() {
+        return false;
     }
 
     @Override
     public void onClose() {
-
     }
 
     public void sendRows(ResultSet res, ActionInvocation invoc) throws SQLException {

@@ -37,6 +37,9 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
 
     @Override
     void createDatabaseConnection() {
+        if (!canConnect()) {
+            return;
+        }
         try {
             String url = db_url.getValue().toString();
             String name = usr_name.getValue().toString();
@@ -62,7 +65,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
             DataSource ds_pooled = DataSources.pooledDataSource( ds_unpooled );
             */
         } catch (PropertyVetoException e) {
-            connSuccess(false);
+            connDown(e.getMessage());
             warn("Failed to connect to Database: " + db_name.getValue() + " Message: " + e);
         }
         testConnection();
@@ -81,5 +84,19 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
         act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
         return act;
+    }
+
+    @Override
+    protected void checkConfig() {
+        if (usr_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty username");
+        }
+        if (db_url.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty url");
+        }
+        if (driver.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty driver");
+        }
+        configOk();
     }
 }
