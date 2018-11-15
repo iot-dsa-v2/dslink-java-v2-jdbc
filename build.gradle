@@ -16,7 +16,7 @@ build {
 }
 
 repositories {
-    mavenLocal()
+    //mavenLocal()
     mavenCentral()
     jcenter()
     maven {
@@ -25,8 +25,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.iot-dsa:dslink-v2-websocket:+' //for a locally installed sdk
-    // implementation 'com.github.iot-dsa-v2:sdk-dslink-java-v2:+'
+    implementation 'com.github.iot-dsa-v2.sdk-dslink-java-v2:dslink-v2-websocket:+'
+    //implementation 'org.iot-dsa:dslink-v2-websocket:+' //for a locally installed sdk
     implementation 'com.mchange:c3p0:+'
     implementation 'mysql:mysql-connector-java:+'
     implementation 'com.h2database:h2:+'
