@@ -27,12 +27,15 @@ public class MainNode extends DSMainNode {
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
-//        declareDefault(JDBCv2Helpers.CREATE_DB, makeCreateDatabaseAction());
         declareDefault("Help",
-                       DSString.valueOf("https://github.com/iot-dsa-v2/dslink-java-v2-jdbc"))
+                       DSString.valueOf(getHelpUrl()))
                 .setReadOnly(true).setTransient(true);
         //TODO: Create action to manually add a driver
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
+    }
+    
+    protected String getHelpUrl() {
+    	return "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc";
     }
 
     private ActionResult addNewDatabase(DSMap parameters) {
