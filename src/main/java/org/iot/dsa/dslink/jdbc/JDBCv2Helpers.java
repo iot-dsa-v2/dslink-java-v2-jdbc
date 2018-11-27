@@ -16,7 +16,7 @@ import org.iot.dsa.node.DSNode;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-class JDBCv2Helpers {
+public class JDBCv2Helpers {
 
     static final String DB_NAME = "DB Name";
     static final String DB_URL = "URL";

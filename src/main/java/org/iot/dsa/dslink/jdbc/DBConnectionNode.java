@@ -29,11 +29,11 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     // Instance Fields
     ///////////////////////////////////////////////////////////////////////////
 
-    final DSInfo db_name = getInfo(JDBCv2Helpers.DB_NAME);
-    final DSInfo db_url = getInfo(JDBCv2Helpers.DB_URL);
-    final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
-    final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
-    final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
+	protected final DSInfo db_name = getInfo(JDBCv2Helpers.DB_NAME);
+    protected final DSInfo db_url = getInfo(JDBCv2Helpers.DB_URL);
+    protected final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
+    protected final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
+    protected final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
     private DSInfo enabled = getInfo(ENABLED);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
 
     }
 
-    DBConnectionNode(DSMap params) {
+    protected DBConnectionNode(DSMap params) {
         setParameters(params);
     }
 
@@ -95,11 +95,11 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     // Package Methods
     ///////////////////////////////////////////////////////////////////////////
 
-    abstract void closeConnections();
+    protected abstract void closeConnections();
 
-    abstract void createDatabaseConnection();
+    protected abstract void createDatabaseConnection();
 
-    ActionResult edit(DSMap parameters) {
+    protected ActionResult edit(DSMap parameters) {
         setParameters(parameters);
         closeConnections();
         createDatabaseConnection();
@@ -166,7 +166,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return res;
     }*/
 
-    ResultSet executeQuery(String sqlQuery) {
+    protected ResultSet executeQuery(String sqlQuery) {
         Connection conn = null;
         Statement stmt = null;
         ResultSet res = null;

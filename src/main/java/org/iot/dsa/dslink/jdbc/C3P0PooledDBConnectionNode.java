@@ -42,6 +42,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     }
 
     @Override
+	protected
     void closeConnections() {
         if (pool_data_source != null) {
             pool_data_source.close();
@@ -49,6 +50,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     }
 
     @Override
+	protected
     void createDatabaseConnection() {
         if (!canConnect()) {
             return;
