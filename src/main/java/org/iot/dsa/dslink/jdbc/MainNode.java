@@ -1,7 +1,6 @@
 package org.iot.dsa.dslink.jdbc;
 
 import org.iot.dsa.dslink.DSMainNode;
-import org.iot.dsa.node.DSElement;
 import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
@@ -42,20 +41,6 @@ public class MainNode extends DSMainNode {
         return null;
     }
 
-//    private ActionResult addNewDriver(DSMap parameters) {
-//        String drvr = parameters.getString(JDBCv2Helpers.DRIVER_NAME);
-//        registerDriver(drvr);
-//        return null;
-//    }
-
-//    private ActionResult createNewDatabase(DSMap parameters) {
-//        parameters.put(JDBCv2Helpers.DRIVER, DSElement.make("org.h2.Driver"));
-//        parameters.put(JDBCv2Helpers.DB_URL, DSElement.make("Not Started"));
-//        DSNode nextDB = new ManagedH2DBConnectionNode(parameters);
-//        add(parameters.getString(JDBCv2Helpers.DB_NAME), nextDB);
-//        return null;
-//    }
-
     protected DSAction makeAddDatabaseAction() {
         DSAction act = new DSAction.Parameterless() {
             @Override
@@ -75,43 +60,5 @@ public class MainNode extends DSMainNode {
         //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
         return act;
     }
-
-//    private DSAction makeAddDriverAction() {
-//        //TODO: Implement the addition of user-defined drivers
-//        DSAction act = new DSAction.Parameterless() {
-//            @Override
-//            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-//                return ((MainNode) target.get()).addNewDriver(invocation.getParameters());
-//            }
-//        };
-//        act.addParameter(JDBCv2Helpers.DRIVER_NAME, DSValueType.STRING, null);
-//        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
-//        act.addParameter(JDBCv2Helpers.REGISTERED, DSValueType.ENUM, null).setEnumRange(drivers);
-//        return act;
-//    }
-//
-//    private DSAction makeCreateDatabaseAction() {
-//        DSAction act = new DSAction.Parameterless() {
-//            @Override
-//            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-//                return ((MainNode) target.get()).createNewDatabase(invocation.getParameters());
-//            }
-//        };
-//        act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
-//        act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
-//        act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
-//        //TODO: add default timeout/poolable options
-//        //action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
-//        //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
-//        return act;
-//    }
-
-//    private void registerDriver(String drvr) {
-//        try {
-//            JDBCv2Helpers.registerDriver(drvr);
-//        } catch (ClassNotFoundException e) {
-//            warn("Driver class not found: " + drvr, e);
-//        }
-//    }
 
 }

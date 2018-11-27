@@ -23,7 +23,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     public C3P0PooledDBConnectionNode() {
     }
 
-    C3P0PooledDBConnectionNode(DSMap params) {
+    public C3P0PooledDBConnectionNode(DSMap params) {
         super(params);
     }
 
