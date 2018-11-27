@@ -166,7 +166,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return res;
     }*/
 
-    protected ResultSet executeQuery(String sqlQuery) {
+    public ResultSet executeQuery(String sqlQuery) {
         Connection conn = null;
         Statement stmt = null;
         ResultSet res = null;
@@ -212,7 +212,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return act;
     }
 
-    protected ActionResult runQuery(DSMap params, DSAction act) {
+    public ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
         ResultSet rSet = executeQuery(query);
         ActionResult res;
