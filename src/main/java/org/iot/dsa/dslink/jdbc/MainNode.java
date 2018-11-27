@@ -29,7 +29,7 @@ public class MainNode extends DSMainNode {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
         declareDefault(JDBCv2Helpers.CREATE_DB, makeCreateDatabaseAction());
-        declareDefault("Docs",
+        declareDefault("Help",
                        DSString.valueOf("https://github.com/iot-dsa-v2/dslink-java-v2-jdbc"))
                 .setReadOnly(true).setTransient(true);
         //TODO: Create action to manually add a driver
@@ -110,8 +110,7 @@ public class MainNode extends DSMainNode {
         try {
             JDBCv2Helpers.registerDriver(drvr);
         } catch (ClassNotFoundException e) {
-            warn("Driver class not found: " + drvr);
-            warn(e);
+            warn("Driver class not found: " + drvr, e);
         }
     }
 

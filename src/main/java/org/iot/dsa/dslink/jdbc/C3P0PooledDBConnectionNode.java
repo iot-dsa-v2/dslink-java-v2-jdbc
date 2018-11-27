@@ -21,11 +21,24 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     private ComboPooledDataSource pool_data_source = null;
 
     public C3P0PooledDBConnectionNode() {
-
     }
 
     C3P0PooledDBConnectionNode(DSMap params) {
         super(params);
+    }
+
+    @Override
+    protected void checkConfig() {
+        if (usr_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty username");
+        }
+        if (db_url.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty url");
+        }
+        if (driver.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty driver");
+        }
+        configOk();
     }
 
     @Override
@@ -86,17 +99,4 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
         return act;
     }
 
-    @Override
-    protected void checkConfig() {
-        if (usr_name.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty username");
-        }
-        if (db_url.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty url");
-        }
-        if (driver.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty driver");
-        }
-        configOk();
-    }
 }

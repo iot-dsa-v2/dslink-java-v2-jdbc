@@ -41,6 +41,17 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
     }
 
     @Override
+    protected void checkConfig() {
+        if (usr_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty username");
+        }
+        if (db_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty db name");
+        }
+        configOk();
+    }
+
+    @Override
     protected void declareDefaults() {
         super.declareDefaults();
         declareDefault(JDBCv2Helpers.EXT_ACCESS, DSBool.make(false));
@@ -207,16 +218,5 @@ public class ManagedH2DBConnectionNode extends DBConnectionNode {
 
     private void updateServerURL() {
         put(db_url, DSElement.make(getServerURL()));
-    }
-
-    @Override
-    protected void checkConfig() {
-        if (usr_name.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty username");
-        }
-        if (db_name.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty db name");
-        }
-        configOk();
     }
 }

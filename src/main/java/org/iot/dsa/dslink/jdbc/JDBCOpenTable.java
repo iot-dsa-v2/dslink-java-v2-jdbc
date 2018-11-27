@@ -21,7 +21,7 @@ import org.iot.dsa.node.action.ActionTable;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class JDBCOpenTable implements ActionTable {
+class JDBCOpenTable implements ActionTable {
 
     private ActionSpec act;
     private List<DSMap> cols;

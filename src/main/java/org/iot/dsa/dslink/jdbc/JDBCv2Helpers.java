@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Enumeration;
-import java.util.Random;
 import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSNode;
 
@@ -19,23 +18,17 @@ import org.iot.dsa.node.DSNode;
  */
 class JDBCv2Helpers {
 
-    private static final char[] ALPHA_CHARS;
-    private static final Random RANDOM = new Random();
-
     static final String DB_NAME = "DB Name";
     static final String DB_URL = "URL";
     static final String DB_USER = "User Name";
     static final String DB_PASSWORD = "Password";
     static final String DRIVER = "Driver";
     static final String ADD_DB = "Connect";
-    static final String LAST_SUCCESS = "Last Success Con";
-    static final String LAST_FAIL = "Last Fail Con";
     static final String EXT_ACCESS = "Allow Access";
     static final String CREATE_DB = "Create H2";
     static final String DRIVER_NAME = "Driver Name";
     static final String REGISTERED = "Registered";
     static final String ADD_DRIVER = "Add Driver";
-    static final String REMOVE = "Disconnect";
     static final String QUERY = "Query";
     static final String UPDATE = "Update";
     static final String MAKE_NODES = "Nodes";
@@ -44,8 +37,6 @@ class JDBCv2Helpers {
     static final String EDIT = "Edit";
     static final String INTERVAL = "Query Interval";
     static final String STREAM_QUERY = "Streaming Query";
-    static final String STATUS = "Connection Status";
-    static final String ENABLED = "Enabled";
 
     private static DSList cashedDriversNames;
 
@@ -94,11 +85,4 @@ class JDBCv2Helpers {
         cashedDriversNames = null;
     }
 
-    static {
-        StringBuilder tmp = new StringBuilder();
-        for (char ch = 'a'; ch <= 'z'; ++ch) {
-            tmp.append(ch);
-        }
-        ALPHA_CHARS = tmp.toString().toCharArray();
-    }
 }
