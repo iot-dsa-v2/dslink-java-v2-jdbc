@@ -190,9 +190,9 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return res;
     }
 
-    abstract Connection getConnection() throws SQLException;
+    protected abstract Connection getConnection() throws SQLException;
 
-    String getCurPass() {
+    protected String getCurPass() {
         return ((DSPasswordAes128) password.getValue()).decode();
     }
 
@@ -212,7 +212,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return act;
     }
 
-    ActionResult runQuery(DSMap params, DSAction act) {
+    protected ActionResult runQuery(DSMap params, DSAction act) {
         String query = params.get(JDBCv2Helpers.QUERY).toString();
         ResultSet rSet = executeQuery(query);
         ActionResult res;
@@ -225,7 +225,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         return res;
     }
 
-    void setParameters(DSMap params) {
+    protected void setParameters(DSMap params) {
         if (!params.isNull(JDBCv2Helpers.DB_NAME)) {
             put(db_name, params.get(JDBCv2Helpers.DB_NAME));
         }
@@ -243,7 +243,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         }
     }
 
-    void testConnection() {
+    protected void testConnection() {
         Connection conn = null;
         Statement stmt = null;
         ResultSet res = null;

@@ -87,7 +87,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     }
 
     @Override
-    Connection getConnection() throws SQLException {
+	protected Connection getConnection() throws SQLException {
         return pool_data_source.getConnection();
     }
 
