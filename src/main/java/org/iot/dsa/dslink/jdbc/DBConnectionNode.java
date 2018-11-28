@@ -235,9 +235,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         if (!params.isNull(JDBCv2Helpers.DB_USER)) {
             put(usr_name, params.get(JDBCv2Helpers.DB_USER));
         }
-        if (!params.isNull(JDBCv2Helpers.DRIVER)) {
-            put(driver, params.get(JDBCv2Helpers.DRIVER));
-        }
         if (!params.isNull(JDBCv2Helpers.DB_PASSWORD)) {
             setCurPass(params.get(JDBCv2Helpers.DB_PASSWORD).toString());
         }

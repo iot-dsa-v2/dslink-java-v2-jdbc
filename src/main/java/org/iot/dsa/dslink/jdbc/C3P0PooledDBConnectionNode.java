@@ -4,7 +4,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.DSAction;
@@ -94,10 +93,8 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     @Override
     DSAction makeEditAction() {
         DSAction act = super.makeEditAction();
-        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
         act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null)
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
-        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
         return act;
     }
 

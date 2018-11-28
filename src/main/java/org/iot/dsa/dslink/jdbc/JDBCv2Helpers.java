@@ -1,13 +1,9 @@
 package org.iot.dsa.dslink.jdbc;
 
 import java.sql.Connection;
-import java.sql.Driver;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Enumeration;
-import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSNode;
 
 /**
@@ -38,8 +34,6 @@ public class JDBCv2Helpers {
 	public static final String INTERVAL = "Query Interval";
 	public static final String STREAM_QUERY = "Streaming Query";
 
-    private static DSList cashedDriversNames;
-
     public static void cleanClose(ResultSet res, Statement stmt, Connection conn, DSNode node) {
         if (res != null) {
             try {
@@ -63,26 +57,4 @@ public class JDBCv2Helpers {
             }
         }
     }
-
-    static DSList getRegisteredDrivers() {
-        if (cashedDriversNames == null) {
-            Enumeration<Driver> drivers = DriverManager.getDrivers();
-            cashedDriversNames = new DSList();
-            while (drivers.hasMoreElements()) {
-                Driver driver = drivers.nextElement();
-                // skip MySQL fabric
-                if (!driver.getClass().getName().contains("fabric")) {
-                    cashedDriversNames.add(driver.getClass().getName());
-                }
-            }
-        }
-
-        return cashedDriversNames.copy();
-    }
-
-    static void registerDriver(String driverClass) throws ClassNotFoundException {
-        Class.forName(driverClass);
-        cashedDriversNames = null;
-    }
-
 }
