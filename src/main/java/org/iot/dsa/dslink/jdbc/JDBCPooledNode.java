@@ -15,14 +15,14 @@ import org.iot.dsa.security.DSPasswordAes128;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class C3P0PooledDBConnectionNode extends DBConnectionNode {
+public class JDBCPooledNode extends DBConnectionNode {
 
     private ComboPooledDataSource pool_data_source = null;
 
-    public C3P0PooledDBConnectionNode() {
+    public JDBCPooledNode() {
     }
 
-    public C3P0PooledDBConnectionNode(DSMap params) {
+    public JDBCPooledNode(DSMap params) {
         super(params);
     }
 
