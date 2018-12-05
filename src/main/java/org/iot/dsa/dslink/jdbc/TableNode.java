@@ -34,4 +34,5 @@ public class TableNode extends DSNode {
         act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
         return act;
     }
+
 }

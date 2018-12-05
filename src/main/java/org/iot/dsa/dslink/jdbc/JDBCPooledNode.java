@@ -4,7 +4,6 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSValueType;
 import org.iot.dsa.node.action.DSAction;
@@ -16,19 +15,33 @@ import org.iot.dsa.security.DSPasswordAes128;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class C3P0PooledDBConnectionNode extends DBConnectionNode {
+public class JDBCPooledNode extends DBConnectionNode {
 
     private ComboPooledDataSource pool_data_source = null;
 
-    public C3P0PooledDBConnectionNode() {
-
+    public JDBCPooledNode() {
     }
 
-    C3P0PooledDBConnectionNode(DSMap params) {
+    public JDBCPooledNode(DSMap params) {
         super(params);
     }
 
     @Override
+    protected void checkConfig() {
+        if (usr_name.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty username");
+        }
+        if (db_url.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty url");
+        }
+        if (driver.getElement().toString().isEmpty()) {
+            throw new IllegalStateException("Empty driver");
+        }
+        configOk();
+    }
+
+    @Override
+	protected
     void closeConnections() {
         if (pool_data_source != null) {
             pool_data_source.close();
@@ -36,6 +49,7 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     }
 
     @Override
+	protected
     void createDatabaseConnection() {
         if (!canConnect()) {
             return;
@@ -72,31 +86,16 @@ public class C3P0PooledDBConnectionNode extends DBConnectionNode {
     }
 
     @Override
-    Connection getConnection() throws SQLException {
+	protected Connection getConnection() throws SQLException {
         return pool_data_source.getConnection();
     }
 
     @Override
     DSAction makeEditAction() {
         DSAction act = super.makeEditAction();
-        DSList drivers = JDBCv2Helpers.getRegisteredDrivers();
         act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null)
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
-        act.addParameter(JDBCv2Helpers.DRIVER, DSValueType.ENUM, null).setEnumRange(drivers);
         return act;
     }
 
-    @Override
-    protected void checkConfig() {
-        if (usr_name.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty username");
-        }
-        if (db_url.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty url");
-        }
-        if (driver.getElement().toString().isEmpty()) {
-            throw new IllegalStateException("Empty driver");
-        }
-        configOk();
-    }
 }

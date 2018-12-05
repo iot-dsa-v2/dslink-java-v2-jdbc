@@ -68,6 +68,7 @@ public class JDBCClosedTable implements ActionTable {
 
     @Override
     public DSIValue getValue(int col) {
+        col += 1;
         try {
             switch (colTypes[col]) {
                 case TYPE_BOOLEAN:
