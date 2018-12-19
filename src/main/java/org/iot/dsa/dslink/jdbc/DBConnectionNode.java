@@ -314,6 +314,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             warn("Failed to connect to Database: " + db_name.getValue(), e);
             throw new DSRequestException("Database connection failed: " + e);
         }
+        JDBCv2Helpers.cleanClose(null, stmt, conn, this);
         return null;
     }
 
