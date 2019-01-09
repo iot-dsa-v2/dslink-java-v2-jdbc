@@ -37,7 +37,6 @@ public class JDBCPooledNode extends DBConnectionNode {
         if (driver.getElement().toString().isEmpty()) {
             throw new IllegalStateException("Empty driver");
         }
-        configOk();
     }
 
     @Override
