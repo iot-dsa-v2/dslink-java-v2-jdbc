@@ -1,6 +1,6 @@
 {
   "name": "dslink-java-v2-jdbc",
-  "version": "1.3.9",
+  "version": "1.3.10",
   "description": "Database link for JDBC databases",
   "main": "bin/dslink-java-v2-jdbc",
   "configs": {
