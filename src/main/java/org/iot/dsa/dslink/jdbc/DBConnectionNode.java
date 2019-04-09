@@ -35,6 +35,8 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     protected final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
     protected final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
     private DSInfo enabled = getInfo(ENABLED);
+    
+    private DSMap initialParameters;
 
     ///////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -46,7 +48,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     protected DBConnectionNode(DSMap params) {
-        setParameters(params);
+        this.initialParameters = params;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -82,6 +84,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
 
     @Override
     protected void onStable() {
+        setParameters(initialParameters);
         createDatabaseConnection();
     }
 
