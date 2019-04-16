@@ -142,6 +142,7 @@ public class JDBCClosedTable implements ActionTable {
                     colTypes[idx] = ColType.TYPE_STRING;
                     break;
                 //boolean
+                case Types.BIT:
                 case Types.BOOLEAN:
                     ret = DSValueType.BOOL;
                     colTypes[idx] = ColType.TYPE_BOOLEAN;
@@ -167,7 +168,6 @@ public class JDBCClosedTable implements ActionTable {
                     colTypes[idx] = ColType.TYPE_TIME;
                     break;
                 //long
-                case Types.BIT:
                 case Types.BIGINT:
                 case Types.INTEGER:
                 case Types.SMALLINT:
