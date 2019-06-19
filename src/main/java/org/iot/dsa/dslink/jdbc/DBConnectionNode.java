@@ -76,6 +76,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
 
     @Override
     protected void onStable() {
+        super.onStable();
         createDatabaseConnection();
     }
 
