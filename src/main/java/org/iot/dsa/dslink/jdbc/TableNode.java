@@ -8,7 +8,7 @@ import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
 
 /**
- * Node representing a table in a managed H2 database.
+ * Node representing a table in a managed database.
  *
  * @author James (Juris) Puchin
  * Created on 10/13/2017

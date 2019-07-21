@@ -26,9 +26,9 @@ public abstract class AbstractMainNode extends DSMainNode {
         //TODO: Create action to manually add a driver
         //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }
-    
+
     protected String getHelpUrl() {
-    	return "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc";
+        return "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc";
     }
 
     abstract protected DSAction makeAddDatabaseAction();
