@@ -28,7 +28,7 @@ import org.iot.dsa.util.DSException;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class JDBCClosedTable implements ActionTable {
+public class JDBCClosedTable implements ActionTable, JDBCObject {
 
     private ActionSpec act;
     private ColType[] colTypes;
@@ -124,7 +124,7 @@ public class JDBCClosedTable implements ActionTable {
         } catch (SQLException e) {
             node.warn("Failed to properly close the connection: " + e);
         }
-        JDBCv2Helpers.cleanClose(res, stmt, conn, node);
+        cleanClose(res, stmt, conn, node);
     }
 
     private static DSMap makeColumn(String name, DSValueType type) {

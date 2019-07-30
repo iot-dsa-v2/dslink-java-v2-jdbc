@@ -90,7 +90,7 @@ public class JDBCPooledNode extends DBConnectionNode {
     @Override
     protected DSAction makeEditAction() {
         DSAction act = super.makeEditAction();
-        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null)
+        act.addParameter(JDBCObject.DB_URL, DSValueType.STRING, null)
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
         return act;
     }

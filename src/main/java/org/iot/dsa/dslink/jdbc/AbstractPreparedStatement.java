@@ -23,13 +23,13 @@ import org.iot.dsa.node.action.DSAction;
  *
  * @author Aaron Hansen
  */
-public abstract class AbstractPreparedStatement extends DSNode {
+public abstract class AbstractPreparedStatement extends DSNode implements JDBCObject {
 
     ///////////////////////////////////////////////////////////////////////////
     // Class Fields
     ///////////////////////////////////////////////////////////////////////////
 
-    static final String STATEMENT = "Statement";
+    static final String EXECUTE = "Execute";
     static final String PARAMETER = "Parameter";
     static final String PARAMETERS = "Parameters";
     static final String COUNT = "Count";
@@ -54,10 +54,10 @@ public abstract class AbstractPreparedStatement extends DSNode {
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
-        declareDefault(STATEMENT, DSString.EMPTY, "Query to execute");
+        declareDefault(STATEMENT, DSString.EMPTY, "Statement to execute");
         declareDefault(PARAMETERS, DSLong.valueOf(0), "Number of parameters in the query")
                 .setPrivate(true);
-        declareDefault(JDBCv2Helpers.QUERY, DSString.EMPTY, "Execute the query")
+        declareDefault(EXECUTE, DSString.EMPTY, "Execute the statement")
                 .setTransient(true);
         declareDefault(SET_PARAM_COUNT, new DSAction.Parameterless() {
             @Override
@@ -84,7 +84,7 @@ public abstract class AbstractPreparedStatement extends DSNode {
     @Override
     protected void onStarted() {
         super.onStarted();
-        put(JDBCv2Helpers.QUERY, new MyQueryAction());
+        put(EXECUTE, new MyQueryAction());
     }
 
     protected void setParameterCount(int count) {
@@ -170,7 +170,7 @@ public abstract class AbstractPreparedStatement extends DSNode {
             } catch (SQLException x) {
                 error(x);
                 getConn().connDown(x.getMessage());
-                JDBCv2Helpers.cleanClose(res, stmt, conn, AbstractPreparedStatement.this);
+                cleanClose(res, stmt, conn, AbstractPreparedStatement.this);
                 throw new IllegalStateException("Database connection failed: " + x);
             }
             try {
@@ -212,6 +212,12 @@ public abstract class AbstractPreparedStatement extends DSNode {
 
         @Override
         public void prepareParameter(DSInfo target, DSMap parameter) {
+        }
+
+        {
+            if (AbstractPreparedStatement.this instanceof JDBCPreparedQuery) {
+                setResultType(ResultType.CLOSED_TABLE);
+            }
         }
 
     }

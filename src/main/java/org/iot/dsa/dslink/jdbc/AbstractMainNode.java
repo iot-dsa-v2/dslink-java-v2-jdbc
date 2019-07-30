@@ -10,27 +10,24 @@ import org.iot.dsa.node.action.DSAction;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public abstract class AbstractMainNode extends DSMainNode {
+public abstract class AbstractMainNode extends DSMainNode implements JDBCObject {
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Methods
-    ///////////////////////////////////////////////////////////////////////////
+    public static final String CONNECT = "Connect";
+    public static final String CONNECTION = "Connection";
 
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
-        declareDefault(JDBCv2Helpers.ADD_DB, makeAddDatabaseAction());
-        declareDefault("Help",
-                       DSString.valueOf(getHelpUrl()))
+        declareDefault(CONNECT, makeNewConnectionAction())
+                .getMetadata().setActionGroup(DSAction.NEW_GROUP, CONNECTION);
+        declareDefault("Help", DSString.valueOf(getHelpUrl()))
                 .setReadOnly(true).setTransient(true);
-        //TODO: Create action to manually add a driver
-        //declareDefault(JDBCv2Helpers.ADD_DRIVER, makeAddDriverAction());
     }
 
     protected String getHelpUrl() {
         return "https://github.com/iot-dsa-v2/dslink-java-v2-jdbc";
     }
 
-    abstract protected DSAction makeAddDatabaseAction();
+    abstract protected DSAction makeNewConnectionAction();
 
 }

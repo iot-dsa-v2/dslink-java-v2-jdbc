@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.iot.dsa.conn.DSBaseConnection;
 import org.iot.dsa.dslink.DSRequestException;
+import org.iot.dsa.node.DSElement;
 import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSLong;
 import org.iot.dsa.node.DSMap;
@@ -24,17 +25,28 @@ import org.iot.dsa.security.DSPasswordAes128;
  * @author Juris Puchin
  * Created on 10/13/2017
  */
-abstract public class DBConnectionNode extends DSBaseConnection {
+abstract public class DBConnectionNode extends DSBaseConnection implements JDBCObject {
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Fields
+    ///////////////////////////////////////////////////////////////////////////
+
+    public static final String CREATE_NODES = "Create Nodes";
+    public static final String PREPARED_QUERY = "Prepared Query";
+    public static final String PREPARED_UPDATE = "Prepared Update";
+    public static final String QUERY = "Query";
+    public static final String SHOW_TABLES = "Show Tables";
+    public static final String UPDATE = "Update";
 
     ///////////////////////////////////////////////////////////////////////////
     // Instance Fields
     ///////////////////////////////////////////////////////////////////////////
 
-    protected final DSInfo db_name = getInfo(JDBCv2Helpers.DB_NAME);
-    protected final DSInfo db_url = getInfo(JDBCv2Helpers.DB_URL);
-    protected final DSInfo driver = getInfo(JDBCv2Helpers.DRIVER);
-    protected final DSInfo password = getInfo(JDBCv2Helpers.DB_PASSWORD);
-    protected final DSInfo usr_name = getInfo(JDBCv2Helpers.DB_USER);
+    protected final DSInfo db_name = getInfo(DB_NAME);
+    protected final DSInfo db_url = getInfo(DB_URL);
+    protected final DSInfo driver = getInfo(DRIVER);
+    protected final DSInfo password = getInfo(DB_PASSWORD);
+    protected final DSInfo usr_name = getInfo(DB_USER);
 
     ///////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -53,7 +65,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     // Public Methods
     ///////////////////////////////////////////////////////////////////////////
 
-    public ResultSet executeQuery(String sqlQuery) {
+    public ResultSet executeQuery(String statement) {
         Connection conn = null;
         Statement stmt = null;
         ResultSet res = null;
@@ -62,22 +74,22 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             stmt = conn.createStatement();
             connOk();
             try {
-                res = stmt.executeQuery(sqlQuery);
+                res = stmt.executeQuery(statement);
             } catch (SQLException e) {
-                JDBCv2Helpers.cleanClose(res, stmt, conn, this);
+                cleanClose(res, stmt, conn, this);
                 throw new DSRequestException("Query failed: " + e);
             }
         } catch (SQLException e) {
             connDown(e.getMessage());
             //noinspection ConstantConditions
-            JDBCv2Helpers.cleanClose(res, stmt, conn, this);
+            cleanClose(res, stmt, conn, this);
             warn("Failed to connect to Database: " + db_name.getValue(), e);
             throw new DSRequestException("Database connection failed: " + e);
         }
         return res;
     }
 
-    public void executeUpdate(String query) {
+    public void executeUpdate(String statement) {
         Connection conn = null;
         Statement stmt = null;
         try {
@@ -85,29 +97,29 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             stmt = conn.createStatement();
             connOk();
             try {
-                stmt.executeUpdate(query);
+                stmt.executeUpdate(statement);
             } catch (SQLException e) {
-                JDBCv2Helpers.cleanClose(null, stmt, conn, this);
+                cleanClose(null, stmt, conn, this);
                 throw new DSRequestException("Update failed: " + e);
             }
         } catch (SQLException e) {
             connDown(e.getMessage());
             //noinspection ConstantConditions
-            JDBCv2Helpers.cleanClose(null, stmt, conn, this);
+            cleanClose(null, stmt, conn, this);
             warn("Failed to connect to Database: " + db_name.getValue(), e);
             throw new DSRequestException("Database connection failed: " + e);
         }
-        JDBCv2Helpers.cleanClose(null, stmt, conn, this);
+        cleanClose(null, stmt, conn, this);
     }
 
     public ActionResult runQuery(DSMap params, DSAction act) {
-        String query = params.get(JDBCv2Helpers.QUERY).toString();
+        String query = params.get(STATEMENT).toString();
         ResultSet rSet = executeQuery(query);
         ActionResult res;
         try {
             res = new JDBCClosedTable(act, rSet, this);
         } catch (SQLException e) {
-            JDBCv2Helpers.cleanClose(rSet, null, null, this);
+            cleanClose(rSet, null, null, this);
             throw new DSRequestException("Failed to retrieve data from database: " + e);
         }
         return res;
@@ -125,22 +137,21 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     protected void declareDefaults() {
         super.declareDefaults();
         //Default Values
-        declareDefault(JDBCv2Helpers.DB_NAME, DSString.valueOf("No Name"));
-        declareDefault(JDBCv2Helpers.DB_USER, DSString.valueOf("No Name"));
-        declareDefault(JDBCv2Helpers.DB_URL, DSString.valueOf("No URL"));
-        declareDefault(JDBCv2Helpers.DRIVER, DSString.valueOf("No Driver"));
-        declareDefault(JDBCv2Helpers.DB_PASSWORD, DSPasswordAes128.valueOf("No Pass"));
+        declareDefault(DB_NAME, DSString.valueOf("No Name"));
+        declareDefault(DB_USER, DSString.valueOf("No Name"));
+        declareDefault(DB_URL, DSString.valueOf("No URL"));
+        declareDefault(DRIVER, DSString.valueOf("No Driver"));
+        declareDefault(DB_PASSWORD, DSPasswordAes128.valueOf("No Pass"));
         //Default Actions
-        declareDefault(JDBCv2Helpers.QUERY, makeQueryAction());
-        declareDefault(JDBCv2Helpers.UPDATE, makeUpdateAction());
-        declareDefault("Settings", makeEditAction()).getMetadata().setActionGroup(
-                DSAction.EDIT_GROUP, "Settings");
-        declareDefault("Add Prepared Query", makeAddPreparedQueryAction(), null)
+        declareDefault(QUERY, makeQueryAction());
+        declareDefault(UPDATE, makeUpdateAction());
+        declareDefault(SHOW_TABLES, makeShowTablesAction());
+        declareDefault(SETTINGS, makeEditAction()).getMetadata().setActionGroup(
+                DSAction.EDIT_GROUP, SETTINGS);
+        declareDefault(PREPARED_QUERY, makeAddPreparedQueryAction(), null)
                 .getMetadata().setActionGroup(DSAction.NEW_GROUP, null);
-        declareDefault("Add Prepared Update", makeAddPreparedUpdateAction(), null)
+        declareDefault(PREPARED_UPDATE, makeAddPreparedUpdateAction(), null)
                 .getMetadata().setActionGroup(DSAction.NEW_GROUP, null);
-        //TODO: Add streaming Queries
-        //declareDefault(JDBCv2Helpers.STREAM_QUERY, makeStreamingQueryAction());
     }
 
     protected ActionResult edit(DSMap parameters) {
@@ -150,65 +161,6 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         testConnection();
         return null;
     }
-
-    /*
-    private DSAction makeStreamingQueryAction() {
-        DSAction act = new DSAction() {
-            @Override
-            public ActionResult invoke(DSInfo info, ActionInvocation invocation) {
-                return ((DBConnectionNode) info.getParent()).runStreamingQuery(invocation, this);
-            }
-        };
-        act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);
-        act.addParameter(JDBCv2Helpers.INTERVAL, DSValueType.NUMBER, null);
-        act.setResultType(ActionSpec.ResultType.STREAM_TABLE);
-        return act;
-    }
-    private ActionResult runStreamingQuery(final ActionInvocation invoc, DSAction act) {
-        DSMap params = invoc.getParameters();
-        final String query = params.getString(JDBCv2Helpers.QUERY);
-        Long interval = params.getLong(JDBCv2Helpers.INTERVAL);
-        final Container<ResultSet> rSet = new Container<>();
-        final Container<JDBCOpenTable> rTable = new Container<>();
-        final Statement stmt;
-        JDBCOpenTable res = null;
-        DSRuntime.Timer stream = null;
-        try {
-            final String cursName = JDBCv2Helpers.randomCursorName();
-
-            Connection conn = pool_data_source.getConnection();
-            conn.setAutoCommit(false);
-            stmt = conn.createStatement();
-            stmt.execute("DECLARE " + "asdlkfjsa" + " CURSOR FOR " + query);
-
-            rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
-            rTable.setValue(new JDBCOpenTable(act, rSet.getValue(), this));
-            rTable.getValue().sendRows(rSet.getValue(), invoc);
-
-            stream = DSRuntime.run(new Runnable() {
-                @Override
-                public void run() {
-                    while (invoc.isOpen()) {
-                        try {
-                            rSet.setValue(stmt.executeQuery("FETCH NEXT FROM " + cursName));
-                            rTable.getValue().sendRows(rSet.getValue(), invoc);
-                        } catch (SQLException e) {
-                            warn("Failed to fetch JDBCv2 SQL table: " + e);
-                        }
-                    }
-                }
-            }, 0, interval);
-
-        } catch (SQLException e) {
-            connSuccess(false);
-            if (stream != null) {
-                stream.cancel();
-            }
-            warn("Failed to connect to Database: " + db_name.getValue());
-            warn(e);
-        }
-        return res;
-    }*/
 
     protected abstract Connection getConnection() throws SQLException;
 
@@ -221,7 +173,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             @Override
             public ActionResult invoke(DSInfo target, ActionInvocation request) {
                 DSMap params = request.getParameters();
-                String name = params.get(JDBCv2Helpers.NAME, null);
+                String name = params.get(NAME, null);
                 if ((name == null) || name.isEmpty()) {
                     throw new IllegalArgumentException("Missing name");
                 }
@@ -237,7 +189,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
                 return null;
             }
         };
-        act.addParameter(JDBCv2Helpers.NAME, DSString.EMPTY, "Node name");
+        act.addParameter(NAME, DSString.EMPTY, "Node name");
         act.addParameter(AbstractPreparedStatement.STATEMENT, DSString.EMPTY, "Prepared statement");
         act.addDefaultParameter(AbstractPreparedStatement.PARAMETERS, DSLong.valueOf(0),
                                 "Number of parameters in the statement");
@@ -249,7 +201,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             @Override
             public ActionResult invoke(DSInfo target, ActionInvocation request) {
                 DSMap params = request.getParameters();
-                String name = params.get(JDBCv2Helpers.NAME, null);
+                String name = params.get(NAME, null);
                 if ((name == null) || name.isEmpty()) {
                     throw new IllegalArgumentException("Missing name");
                 }
@@ -265,7 +217,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
                 return null;
             }
         };
-        act.addParameter(JDBCv2Helpers.NAME, DSString.EMPTY, "Node name");
+        act.addParameter(NAME, DSString.EMPTY, "Node name");
         act.addParameter(AbstractPreparedStatement.STATEMENT, DSString.EMPTY, "Prepared statement");
         act.addDefaultParameter(AbstractPreparedStatement.PARAMETERS, DSLong.valueOf(0),
                                 "Number of parameters in the statement");
@@ -279,12 +231,9 @@ abstract public class DBConnectionNode extends DSBaseConnection {
                 return ((DBConnectionNode) target.get()).edit(invocation.getParameters());
             }
         };
-        act.addParameter(JDBCv2Helpers.DB_NAME, DSValueType.STRING, null);
-        act.addParameter(JDBCv2Helpers.DB_USER, DSValueType.STRING, null);
-        act.addParameter(JDBCv2Helpers.DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
-        //TODO: add default timeout/poolable options
-        //action.addParameter(new Parameter(JdbcConstants.DEFAULT_TIMEOUT, ValueType.NUMBER));
-        //action.addParameter(new Parameter(JdbcConstants.POOLABLE, ValueType.BOOL, new Value(true)));
+        act.addParameter(DB_NAME, DSValueType.STRING, null);
+        act.addParameter(DB_USER, DSValueType.STRING, null);
+        act.addParameter(DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
         return act;
     }
 
@@ -296,7 +245,7 @@ abstract public class DBConnectionNode extends DSBaseConnection {
                         .runQuery(invocation.getParameters(), this);
             }
         };
-        act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);
+        act.addParameter(STATEMENT, DSValueType.STRING, null);
         act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
         return act;
     }
@@ -305,12 +254,12 @@ abstract public class DBConnectionNode extends DSBaseConnection {
         DSAction act = new DSAction.Parameterless() {
             @Override
             public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                String query = invocation.getParameters().get(JDBCv2Helpers.QUERY).toString();
+                String query = invocation.getParameters().get(STATEMENT).toString();
                 ((DBConnectionNode) target.get()).executeUpdate(query);
                 return null;
             }
         };
-        act.addParameter(JDBCv2Helpers.QUERY, DSValueType.STRING, null);
+        act.addParameter(STATEMENT, DSValueType.STRING, null);
         return act;
     }
 
@@ -327,20 +276,20 @@ abstract public class DBConnectionNode extends DSBaseConnection {
     }
 
     protected void setParameters(DSMap params) {
-        if (!params.isNull(JDBCv2Helpers.DB_NAME)) {
-            put(db_name, params.get(JDBCv2Helpers.DB_NAME));
+        if (!params.isNull(DB_NAME)) {
+            put(db_name, params.get(DB_NAME));
         }
-        if (!params.isNull(JDBCv2Helpers.DB_URL)) {
-            put(db_url, params.get(JDBCv2Helpers.DB_URL));
+        if (!params.isNull(DB_URL)) {
+            put(db_url, params.get(DB_URL));
         }
-        if (!params.isNull(JDBCv2Helpers.DB_USER)) {
-            put(usr_name, params.get(JDBCv2Helpers.DB_USER));
+        if (!params.isNull(DB_USER)) {
+            put(usr_name, params.get(DB_USER));
         }
-        if (!params.isNull(JDBCv2Helpers.DRIVER)) {
-            put(driver, params.get(JDBCv2Helpers.DRIVER));
+        if (!params.isNull(DRIVER)) {
+            put(driver, params.get(DRIVER));
         }
-        if (!params.isNull(JDBCv2Helpers.DB_PASSWORD)) {
-            setCurPass(params.get(JDBCv2Helpers.DB_PASSWORD).toString());
+        if (!params.isNull(DB_PASSWORD)) {
+            setCurPass(params.get(DB_PASSWORD).toString());
         }
     }
 
@@ -359,11 +308,40 @@ abstract public class DBConnectionNode extends DSBaseConnection {
             warn("Failed to connect to Database: " + db_name.getValue(), e);
         } finally {
             if (conn != null) {
-                JDBCv2Helpers.cleanClose(res, stmt, conn, this);
+                cleanClose(res, stmt, conn, this);
             } else {
                 connDown("Conn is null");
             }
         }
+    }
+
+    private DSAction makeShowTablesAction() {
+        DSAction act = new DSAction.Parameterless() {
+            @Override
+            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
+                invocation.getParameters().put(STATEMENT, "SHOW TABLES");
+                DBConnectionNode par = (DBConnectionNode) target.get();
+                ResultSet res = par.executeQuery("SHOW TABLES");
+                if (invocation.getParameters().get(CREATE_NODES).toBoolean()) {
+                    try {
+                        while (res.next()) {
+                            String nxtNode = res.getString(1);
+                            if (par.get(nxtNode) == null) {
+                                par.add(nxtNode, new TableNode());
+                            }
+                        }
+                    } catch (SQLException e) {
+                        warn("Failed to read table list: ", e);
+                    }
+                }
+                return ((DBConnectionNode) target.get())
+                        .runQuery(invocation.getParameters(), this);
+            }
+        };
+        act.addParameter(CREATE_NODES, DSValueType.BOOL, null)
+           .setDefault(DSElement.make(false));
+        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        return act;
     }
 
     private void setCurPass(String pass) {

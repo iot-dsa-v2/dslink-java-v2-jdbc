@@ -39,9 +39,9 @@ public class JDBCPreparedUpdate extends AbstractPreparedStatement {
                                      DSAction action) {
         try {
             stmt.executeUpdate();
-            JDBCv2Helpers.cleanClose(null, stmt, conn, this);
+            cleanClose(null, stmt, conn, this);
         } catch (SQLException e) {
-            JDBCv2Helpers.cleanClose(null, stmt, conn, this);
+            cleanClose(null, stmt, conn, this);
             throw new IllegalStateException("Update failed: " + e);
         }
         return null;

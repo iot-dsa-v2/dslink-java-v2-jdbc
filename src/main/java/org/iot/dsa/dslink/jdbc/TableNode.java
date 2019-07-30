@@ -13,12 +13,14 @@ import org.iot.dsa.node.action.DSAction;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class TableNode extends DSNode {
+public class TableNode extends DSNode implements JDBCObject {
+
+    String SHOW_TABLE = "Show Table";
 
     @Override
     protected void declareDefaults() {
         super.declareDefaults();
-        declareDefault(JDBCv2Helpers.SHOW_TABLE, makeShowTableAction());
+        declareDefault(SHOW_TABLE, makeShowTableAction());
     }
 
     private DSAction makeShowTableAction() {
@@ -26,7 +28,7 @@ public class TableNode extends DSNode {
             @Override
             public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
                 String tableName = target.getNode().getName();
-                invocation.getParameters().put(JDBCv2Helpers.QUERY, "SELECT * FROM " + tableName);
+                invocation.getParameters().put(STATEMENT, "SELECT * FROM " + tableName);
                 DBConnectionNode connNode = (DBConnectionNode) target.getNode().getParent();
                 return connNode.runQuery(invocation.getParameters(), this);
             }

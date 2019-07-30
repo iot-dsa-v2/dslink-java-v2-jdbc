@@ -44,14 +44,14 @@ public class JDBCPreparedQuery extends AbstractPreparedStatement {
         try {
             res = stmt.executeQuery();
         } catch (SQLException e) {
-            JDBCv2Helpers.cleanClose(res, stmt, conn, this);
+            cleanClose(res, stmt, conn, this);
             throw new IllegalStateException("Query failed: " + e);
         }
         ActionResult act = null;
         try {
             act = new JDBCClosedTable(action, res, this);
         } catch (SQLException e) {
-            JDBCv2Helpers.cleanClose(res, stmt, conn, this);
+            cleanClose(res, stmt, conn, this);
             throw new IllegalStateException("Failed to retrieve data from database: " + e);
         }
         return act;
