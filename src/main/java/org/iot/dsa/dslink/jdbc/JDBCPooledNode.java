@@ -40,16 +40,14 @@ public class JDBCPooledNode extends DBConnectionNode {
     }
 
     @Override
-	protected
-    void closeConnections() {
+    protected void closeConnections() {
         if (pool_data_source != null) {
             pool_data_source.close();
         }
     }
 
     @Override
-	protected
-    void createDatabaseConnection() {
+    protected void createDatabaseConnection() {
         if (!canConnect()) {
             return;
         }
@@ -85,14 +83,14 @@ public class JDBCPooledNode extends DBConnectionNode {
     }
 
     @Override
-	protected Connection getConnection() throws SQLException {
+    protected Connection getConnection() throws SQLException {
         return pool_data_source.getConnection();
     }
 
     @Override
-    DSAction makeEditAction() {
+    protected DSAction makeEditAction() {
         DSAction act = super.makeEditAction();
-        act.addParameter(JDBCv2Helpers.DB_URL, DSValueType.STRING, null)
+        act.addParameter(JDBCObject.DB_URL, DSValueType.STRING, null)
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
         return act;
     }
