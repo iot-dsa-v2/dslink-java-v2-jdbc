@@ -1,4 +1,5 @@
 # dslink-java-v2-jdbc
+[![](https://jitpack.io/v/iot-dsa-v2/dslink-java-v2-jdbc.svg)](https://jitpack.io/#iot-dsa-v2/dslink-java-v2-jdbc)
 
 * Java - version 1.8 and up.
 * [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0)
