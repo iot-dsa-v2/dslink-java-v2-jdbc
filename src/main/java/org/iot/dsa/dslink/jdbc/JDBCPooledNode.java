@@ -5,7 +5,7 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import org.iot.dsa.node.DSMap;
-import org.iot.dsa.node.DSValueType;
+import org.iot.dsa.node.DSString;
 import org.iot.dsa.node.action.DSAction;
 import org.iot.dsa.security.DSPasswordAes128;
 
@@ -90,7 +90,7 @@ public class JDBCPooledNode extends DBConnectionNode {
     @Override
     protected DSAction makeEditAction() {
         DSAction act = super.makeEditAction();
-        act.addParameter(JDBCObject.DB_URL, DSValueType.STRING, null)
+        act.addParameter(JDBCObject.DB_URL, DSString.NULL, null)
            .setPlaceHolder("jdbc:mysql://127.0.0.1:3306");
         return act;
     }

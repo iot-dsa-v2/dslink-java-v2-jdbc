@@ -8,9 +8,12 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.LinkedList;
 import java.util.List;
+import org.iot.dsa.dslink.Action.ResultsType;
+import org.iot.dsa.dslink.ActionResults;
 import org.iot.dsa.node.DSBool;
 import org.iot.dsa.node.DSDouble;
 import org.iot.dsa.node.DSIValue;
+import org.iot.dsa.node.DSList;
 import org.iot.dsa.node.DSLong;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSMetadata;
@@ -18,8 +21,7 @@ import org.iot.dsa.node.DSNode;
 import org.iot.dsa.node.DSNull;
 import org.iot.dsa.node.DSString;
 import org.iot.dsa.node.DSValueType;
-import org.iot.dsa.node.action.ActionSpec;
-import org.iot.dsa.node.action.ActionTable;
+import org.iot.dsa.node.action.DSIActionRequest;
 import org.iot.dsa.util.DSException;
 
 /**
@@ -28,17 +30,17 @@ import org.iot.dsa.util.DSException;
  * @author James (Juris) Puchin
  * Created on 10/13/2017
  */
-public class JDBCClosedTable implements ActionTable, JDBCObject {
+public class JDBCTable implements ActionResults, JDBCObject {
 
-    private ActionSpec act;
     private ColType[] colTypes;
     private List<DSMap> cols;
     private int columnCount;
     private DSNode node;
+    private DSIActionRequest req;
     private ResultSet res;
 
-    JDBCClosedTable(ActionSpec act, ResultSet res, DSNode node) throws SQLException {
-        this.act = act;
+    JDBCTable(DSIActionRequest req, ResultSet res, DSNode node) throws SQLException {
+        this.req = req;
         this.res = res;
         this.node = node;
         ResultSetMetaData meta = res.getMetaData();
@@ -52,22 +54,55 @@ public class JDBCClosedTable implements ActionTable, JDBCObject {
     }
 
     @Override
-    public ActionSpec getAction() {
-        return act;
-    }
-
-    @Override
     public int getColumnCount() {
         return cols.size();
     }
 
     @Override
-    public void getMetadata(int col, DSMap bucket) {
+    public void getColumnMetadata(int col, DSMap bucket) {
         bucket.putAll(cols.get(col));
     }
 
     @Override
-    public DSIValue getValue(int col) {
+    public void getResults(DSList row) {
+        for (int i = 0, len = cols.size(); i < len; i++) {
+            row.add(getValue(i).toElement());
+        }
+    }
+
+    @Override
+    public ResultsType getResultsType() {
+        return ResultsType.TABLE;
+    }
+
+    @Override
+    public boolean next() {
+        boolean ret = false;
+        try {
+            ret = res.next();
+        } catch (SQLException x) {
+            DSException.throwRuntime(x);
+        }
+        if (!ret) {
+            req.close();
+        }
+        return ret;
+    }
+
+    @Override
+    public void onClose() {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            conn = res.getStatement().getConnection();
+            stmt = res.getStatement();
+        } catch (SQLException e) {
+            node.warn("Failed to properly close the connection: " + e);
+        }
+        cleanClose(res, stmt, conn, node);
+    }
+
+    private DSIValue getValue(int col) {
         col += 1;
         try {
             switch (colTypes[col]) {
@@ -102,29 +137,6 @@ public class JDBCClosedTable implements ActionTable, JDBCObject {
             DSException.throwRuntime(x);
         }
         return DSNull.NULL;
-    }
-
-    @Override
-    public boolean next() {
-        try {
-            return res.next();
-        } catch (SQLException x) {
-            DSException.throwRuntime(x);
-        }
-        return false;
-    }
-
-    @Override
-    public void onClose() {
-        Connection conn = null;
-        Statement stmt = null;
-        try {
-            conn = res.getStatement().getConnection();
-            stmt = res.getStatement();
-        } catch (SQLException e) {
-            node.warn("Failed to properly close the connection: " + e);
-        }
-        cleanClose(res, stmt, conn, node);
     }
 
     private static DSMap makeColumn(String name, DSValueType type) {

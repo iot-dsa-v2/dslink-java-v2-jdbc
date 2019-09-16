@@ -4,8 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.iot.dsa.node.action.ActionResult;
-import org.iot.dsa.node.action.DSAction;
+import org.iot.dsa.dslink.ActionResults;
+import org.iot.dsa.node.action.DSIActionRequest;
 
 /**
  * Represents a prepared statement that can be used for queries.
@@ -37,9 +37,9 @@ public class JDBCPreparedQuery extends AbstractPreparedStatement {
     ///////////////////////////////////////////////////////////////////////////
 
     @Override
-    protected ActionResult getResult(Connection conn,
-                                     PreparedStatement stmt,
-                                     DSAction action) {
+    protected ActionResults getResults(Connection conn,
+                                       PreparedStatement stmt,
+                                       DSIActionRequest request) {
         ResultSet res = null;
         try {
             res = stmt.executeQuery();
@@ -47,9 +47,9 @@ public class JDBCPreparedQuery extends AbstractPreparedStatement {
             cleanClose(res, stmt, conn, this);
             throw new IllegalStateException("Query failed: " + e);
         }
-        ActionResult act = null;
+        ActionResults act = null;
         try {
-            act = new JDBCClosedTable(action, res, this);
+            act = new JDBCTable(request, res, this);
         } catch (SQLException e) {
             cleanClose(res, stmt, conn, this);
             throw new IllegalStateException("Failed to retrieve data from database: " + e);

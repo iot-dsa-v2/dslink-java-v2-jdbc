@@ -3,8 +3,9 @@ package org.iot.dsa.dslink.jdbc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import org.iot.dsa.node.action.ActionResult;
+import org.iot.dsa.dslink.ActionResults;
 import org.iot.dsa.node.action.DSAction;
+import org.iot.dsa.node.action.DSIActionRequest;
 
 /**
  * Represents a prepared statement that can be used for updates.
@@ -34,9 +35,9 @@ public class JDBCPreparedUpdate extends AbstractPreparedStatement {
     ///////////////////////////////////////////////////////////////////////////
 
     @Override
-    protected ActionResult getResult(Connection conn,
-                                     PreparedStatement stmt,
-                                     DSAction action) {
+    protected ActionResults getResults(Connection conn,
+                                       PreparedStatement stmt,
+                                       DSIActionRequest request) {
         try {
             stmt.executeUpdate();
             cleanClose(null, stmt, conn, this);
