@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    api 'org.iot-dsa:dslink-v2-websocket:+' //for a locally installed sdk
-    //api 'com.github.iot-dsa-v2.sdk-dslink-java-v2:dslink-v2-websocket:0.67.0'
+    //api 'org.iot-dsa:dslink-v2-websocket:+' //for a locally installed sdk
+    api 'com.github.iot-dsa-v2.sdk-dslink-java-v2:dslink-v2-websocket:+0'
     implementation 'com.mchange:c3p0:+'
 }
 
