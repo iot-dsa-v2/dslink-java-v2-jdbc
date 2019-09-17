@@ -4,17 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.iot.dsa.dslink.ActionResults;
 import org.iot.dsa.node.DSElement;
-import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSLong;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSMetadata;
 import org.iot.dsa.node.DSNode;
 import org.iot.dsa.node.DSString;
 import org.iot.dsa.node.DSValueType;
-import org.iot.dsa.node.action.ActionInvocation;
-import org.iot.dsa.node.action.ActionResult;
 import org.iot.dsa.node.action.DSAction;
+import org.iot.dsa.node.action.DSIActionRequest;
 
 /**
  * Represents a prepared statement that can be used for queries.
@@ -57,13 +56,13 @@ public abstract class AbstractPreparedStatement extends DSNode implements JDBCOb
         declareDefault(STATEMENT, DSString.EMPTY, "Statement to execute");
         declareDefault(PARAMETERS, DSLong.valueOf(0), "Number of parameters in the query")
                 .setPrivate(true);
-        declareDefault(EXECUTE, DSString.EMPTY, "Execute the statement")
+        declareDefault(EXECUTE, DSAction.DEFAULT, "Execute the statement")
                 .setTransient(true);
-        declareDefault(SET_PARAM_COUNT, new DSAction.Parameterless() {
+        declareDefault(SET_PARAM_COUNT, new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation request) {
+            public ActionResults invoke(DSIActionRequest request) {
                 int count = request.getParameters().getInt(COUNT);
-                ((AbstractPreparedStatement) target.get()).setParameterCount(count);
+                ((AbstractPreparedStatement) request.getTarget()).setParameterCount(count);
                 return null;
             }
 
@@ -77,9 +76,9 @@ public abstract class AbstractPreparedStatement extends DSNode implements JDBCOb
         return (DBConnectionNode) getParent();
     }
 
-    protected abstract ActionResult getResult(Connection conn,
-                                              PreparedStatement stmt,
-                                              DSAction action);
+    protected abstract ActionResults getResults(Connection conn,
+                                                PreparedStatement stmt,
+                                                DSIActionRequest request);
 
     @Override
     protected void onStarted() {
@@ -160,7 +159,7 @@ public abstract class AbstractPreparedStatement extends DSNode implements JDBCOb
         }
 
         @Override
-        public ActionResult invoke(DSInfo target, ActionInvocation request) {
+        public ActionResults invoke(DSIActionRequest request) {
             Connection conn = null;
             PreparedStatement stmt = null;
             ResultSet res = null;
@@ -207,16 +206,12 @@ public abstract class AbstractPreparedStatement extends DSNode implements JDBCOb
                 error(x);
                 throw new IllegalArgumentException("Query failed: " + x);
             }
-            return getResult(conn, stmt, this);
-        }
-
-        @Override
-        public void prepareParameter(DSInfo target, DSMap parameter) {
+            return getResults(conn, stmt, request);
         }
 
         {
             if (AbstractPreparedStatement.this instanceof JDBCPreparedQuery) {
-                setResultType(ResultType.CLOSED_TABLE);
+                setResultsType(ResultsType.TABLE);
             }
         }
 

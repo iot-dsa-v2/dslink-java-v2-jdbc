@@ -5,18 +5,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.iot.dsa.conn.DSBaseConnection;
+import org.iot.dsa.dslink.Action.ResultsType;
+import org.iot.dsa.dslink.ActionResults;
 import org.iot.dsa.dslink.DSRequestException;
+import org.iot.dsa.node.DSBool;
 import org.iot.dsa.node.DSElement;
 import org.iot.dsa.node.DSInfo;
 import org.iot.dsa.node.DSLong;
 import org.iot.dsa.node.DSMap;
 import org.iot.dsa.node.DSString;
-import org.iot.dsa.node.DSValueType;
-import org.iot.dsa.node.action.ActionInvocation;
-import org.iot.dsa.node.action.ActionResult;
-import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
-import org.iot.dsa.node.action.DSAction.Parameterless;
+import org.iot.dsa.node.action.DSIActionRequest;
 import org.iot.dsa.security.DSPasswordAes128;
 
 /**
@@ -112,12 +111,12 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
         cleanClose(null, stmt, conn, this);
     }
 
-    public ActionResult runQuery(DSMap params, DSAction act) {
-        String query = params.get(STATEMENT).toString();
+    public ActionResults runQuery(DSIActionRequest req) {
+        String query = req.getParameters().get(STATEMENT).toString();
         ResultSet rSet = executeQuery(query);
-        ActionResult res;
+        ActionResults res;
         try {
-            res = new JDBCClosedTable(act, rSet, this);
+            res = new JDBCTable(req, rSet, this);
         } catch (SQLException e) {
             cleanClose(rSet, null, null, this);
             throw new DSRequestException("Failed to retrieve data from database: " + e);
@@ -143,7 +142,18 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
         declareDefault(DRIVER, DSString.valueOf("No Driver"));
         declareDefault(DB_PASSWORD, DSPasswordAes128.valueOf("No Pass"));
         //Default Actions
-        declareDefault(QUERY, makeQueryAction());
+        declareDefault(QUERY, new DSAction() {
+                           @Override
+                           public ActionResults invoke(DSIActionRequest req) {
+                               return runQuery(req);
+                           }
+
+                           {
+                               addParameter(STATEMENT, DSString.NULL, null);
+                               setResultsType(ResultsType.TABLE);
+                           }
+                       }
+        );
         declareDefault(UPDATE, makeUpdateAction());
         declareDefault(SHOW_TABLES, makeShowTablesAction());
         declareDefault(SETTINGS, makeEditAction()).getMetadata().setActionGroup(
@@ -154,7 +164,7 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
                 .getMetadata().setActionGroup(DSAction.NEW_GROUP, null);
     }
 
-    protected ActionResult edit(DSMap parameters) {
+    protected ActionResults edit(DSMap parameters) {
         setParameters(parameters);
         closeConnections();
         createDatabaseConnection();
@@ -169,9 +179,9 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
     }
 
     protected DSAction makeAddPreparedQueryAction() {
-        DSAction act = new Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation request) {
+            public ActionResults invoke(DSIActionRequest request) {
                 DSMap params = request.getParameters();
                 String name = params.get(NAME, null);
                 if ((name == null) || name.isEmpty()) {
@@ -183,7 +193,7 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
                 String statement = params.get(AbstractPreparedStatement.STATEMENT, "");
                 int count = params.get(AbstractPreparedStatement.PARAMETERS, 0);
                 JDBCPreparedQuery node = new JDBCPreparedQuery();
-                target.getNode().put(name, node);
+                request.getTargetInfo().getNode().put(name, node);
                 node.setParameterCount(count);
                 node.setStatement(statement);
                 return null;
@@ -197,9 +207,9 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
     }
 
     protected DSAction makeAddPreparedUpdateAction() {
-        DSAction act = new Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation request) {
+            public ActionResults invoke(DSIActionRequest request) {
                 DSMap params = request.getParameters();
                 String name = params.get(NAME, null);
                 if ((name == null) || name.isEmpty()) {
@@ -211,7 +221,7 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
                 String statement = params.get(AbstractPreparedStatement.STATEMENT, "");
                 int count = params.get(AbstractPreparedStatement.PARAMETERS, 0);
                 JDBCPreparedUpdate node = new JDBCPreparedUpdate();
-                target.getNode().put(name, node);
+                request.getTargetInfo().getNode().put(name, node);
                 node.setParameterCount(count);
                 node.setStatement(statement);
                 return null;
@@ -225,41 +235,28 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
     }
 
     protected DSAction makeEditAction() {
-        DSAction act = new DSAction.Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                return ((DBConnectionNode) target.get()).edit(invocation.getParameters());
+            public ActionResults invoke(DSIActionRequest req) {
+                return ((DBConnectionNode) req.getTarget()).edit(req.getParameters());
             }
         };
-        act.addParameter(DB_NAME, DSValueType.STRING, null);
-        act.addParameter(DB_USER, DSValueType.STRING, null);
-        act.addParameter(DB_PASSWORD, DSValueType.STRING, null).setEditor("password");
-        return act;
-    }
-
-    protected DSAction makeQueryAction() {
-        DSAction act = new DSAction.Parameterless() {
-            @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                return ((DBConnectionNode) target.get())
-                        .runQuery(invocation.getParameters(), this);
-            }
-        };
-        act.addParameter(STATEMENT, DSValueType.STRING, null);
-        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        act.addParameter(DB_NAME, DSString.NULL, null);
+        act.addParameter(DB_USER, DSString.NULL, null);
+        act.addParameter(DB_PASSWORD, DSString.NULL, null).setEditor("password");
         return act;
     }
 
     protected DSAction makeUpdateAction() {
-        DSAction act = new DSAction.Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                String query = invocation.getParameters().get(STATEMENT).toString();
-                ((DBConnectionNode) target.get()).executeUpdate(query);
+            public ActionResults invoke(DSIActionRequest req) {
+                String query = req.getParameters().get(STATEMENT).toString();
+                ((DBConnectionNode) req.getTarget()).executeUpdate(query);
                 return null;
             }
         };
-        act.addParameter(STATEMENT, DSValueType.STRING, null);
+        act.addParameter(STATEMENT, DSString.NULL, null);
         return act;
     }
 
@@ -316,13 +313,13 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
     }
 
     private DSAction makeShowTablesAction() {
-        DSAction act = new DSAction.Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                invocation.getParameters().put(STATEMENT, "SHOW TABLES");
-                DBConnectionNode par = (DBConnectionNode) target.get();
+            public ActionResults invoke(DSIActionRequest req) {
+                req.getParameters().put(STATEMENT, "SHOW TABLES");
+                DBConnectionNode par = (DBConnectionNode) req.getTarget();
                 ResultSet res = par.executeQuery("SHOW TABLES");
-                if (invocation.getParameters().get(CREATE_NODES).toBoolean()) {
+                if (req.getParameters().get(CREATE_NODES).toBoolean()) {
                     try {
                         while (res.next()) {
                             String nxtNode = res.getString(1);
@@ -334,13 +331,12 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
                         warn("Failed to read table list: ", e);
                     }
                 }
-                return ((DBConnectionNode) target.get())
-                        .runQuery(invocation.getParameters(), this);
+                return ((DBConnectionNode) req.getTarget()).runQuery(req);
             }
         };
-        act.addParameter(CREATE_NODES, DSValueType.BOOL, null)
+        act.addParameter(CREATE_NODES, DSBool.TRUE, null)
            .setDefault(DSElement.make(false));
-        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        act.setResultsType(ResultsType.TABLE);
         return act;
     }
 

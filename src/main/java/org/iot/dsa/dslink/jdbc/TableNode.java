@@ -1,11 +1,10 @@
 package org.iot.dsa.dslink.jdbc;
 
-import org.iot.dsa.node.DSInfo;
+import org.iot.dsa.dslink.Action.ResultsType;
+import org.iot.dsa.dslink.ActionResults;
 import org.iot.dsa.node.DSNode;
-import org.iot.dsa.node.action.ActionInvocation;
-import org.iot.dsa.node.action.ActionResult;
-import org.iot.dsa.node.action.ActionSpec;
 import org.iot.dsa.node.action.DSAction;
+import org.iot.dsa.node.action.DSIActionRequest;
 
 /**
  * Node representing a table in a managed database.
@@ -24,16 +23,15 @@ public class TableNode extends DSNode implements JDBCObject {
     }
 
     private DSAction makeShowTableAction() {
-        DSAction act = new DSAction.Parameterless() {
+        DSAction act = new DSAction() {
             @Override
-            public ActionResult invoke(DSInfo target, ActionInvocation invocation) {
-                String tableName = target.getNode().getName();
-                invocation.getParameters().put(STATEMENT, "SELECT * FROM " + tableName);
-                DBConnectionNode connNode = (DBConnectionNode) target.getNode().getParent();
-                return connNode.runQuery(invocation.getParameters(), this);
+            public ActionResults invoke(DSIActionRequest request) {
+                String tableName = request.getTargetInfo().getNode().getName();
+                request.getParameters().put(STATEMENT, "SELECT * FROM " + tableName);
+                DBConnectionNode connNode = (DBConnectionNode) request.getTargetInfo().getParent();
+                return connNode.runQuery(request);
             }
-        };
-        act.setResultType(ActionSpec.ResultType.CLOSED_TABLE);
+        }.setResultsType(ResultsType.TABLE);
         return act;
     }
 
