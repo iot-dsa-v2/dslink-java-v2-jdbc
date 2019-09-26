@@ -145,7 +145,7 @@ abstract public class DBConnectionNode extends DSBaseConnection implements JDBCO
         declareDefault(QUERY, new DSAction() {
                            @Override
                            public ActionResults invoke(DSIActionRequest req) {
-                               return runQuery(req);
+                               return ((DBConnectionNode) req.getTarget()).runQuery(req);
                            }
 
                            {
